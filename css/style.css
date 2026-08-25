@@ -440,30 +440,84 @@ footer{
 }
 
 /* about page */
-.about-inner{padding:60px 0 100px;}
+#page-about{
+  --bg: #120f1f;
+  --bg-raised: #1c1730;
+  --text: #f5f3ff;
+  --muted: #a89fc9;
+  --line: #34294f;
+  --accent: #ff5d8f;
+  background:var(--bg);
+  color:var(--text);
+}
+.about-inner{padding:0 0 100px;}
+
+html.about-page-active{scroll-snap-type:y mandatory;}
+.about-hero{
+  position:relative;
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  scroll-snap-align:start;
+  scroll-snap-stop:always;
+}
+.about-hero .hero-ascii{position:absolute; inset:0; z-index:0; pointer-events:none;}
+.about-hero-copy{position:relative; z-index:1; text-align:center;}
+.about-hero-copy h1{
+  font-size:34px;
+  color:#f5f3ff;
+  text-shadow:0 2px 24px rgba(0,0,0,0.5);
+}
+.about-hero-copy .eyebrow{color:#ffd166;}
+.scroll-cue{
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:0.08em;
+  color:#c9c0ee;
+  margin-top:18px;
+  animation:scroll-cue-bob 1.8s var(--ease) infinite;
+}
+@keyframes scroll-cue-bob{
+  0%, 100%{transform:translateY(0); opacity:0.7;}
+  50%{transform:translateY(6px); opacity:1;}
+}
+
 .interest{
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:36px;
   align-items:center;
-  margin-top:64px;
+  max-width:960px;
+  margin:0 auto;
+  padding:0 24px;
+  min-height:100vh;
   opacity:0;
   transform:translateY(16px);
   transition:opacity 0.6s var(--ease), transform 0.6s var(--ease);
+  scroll-snap-align:start;
+  scroll-snap-stop:always;
 }
 .interest.in-view{opacity:1; transform:translateY(0);}
-.interest:first-of-type{margin-top:40px;}
 .interest:nth-child(even) .interest-media{order:2;}
+#page-about .interest:nth-of-type(2){--accent: #7c5cff;}
+#page-about .interest:nth-of-type(3){--accent: #00e5c4;}
+#page-about .interest:nth-of-type(4){--accent: #ffd166;}
 .ascii-stage{
   width:100%;
   aspect-ratio:1/1;
-  background:var(--bg-raised);
+  background:
+    radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--accent) 30%, transparent), transparent 70%),
+    var(--bg-raised);
   border:1px solid var(--line);
   overflow:hidden;
   display:flex;
   align-items:center;
   justify-content:center;
+  transition:border-color 0.4s var(--ease);
 }
+.interest.in-view .ascii-stage{border-color:var(--accent);}
 .ascii-stage canvas{width:100% !important; height:100% !important;}
 .interest-copy .lede{margin-bottom:20px;}
 .video-frame{

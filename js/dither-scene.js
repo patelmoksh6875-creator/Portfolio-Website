@@ -45,29 +45,35 @@ const DitherShader = {
   `
 };
 
-function buildNatureScene(){
+const PALETTES = {
+  earth: { sky: 0x1c3350, sun: 0xffb84d, halo: 0xff7a5c, ridges: [0x3a5f8a, 0x2f7a5c, 0x1f5c3f] },
+  vivid: { sky: 0x160f2e, sun: 0xffd166, halo: 0xff5d8f, ridges: [0x7c5cff, 0x00e5c4, 0xff2d78] }
+};
+
+function buildNatureScene(paletteKey){
+  const palette = PALETTES[paletteKey] || PALETTES.earth;
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x1c3350);
+  scene.background = new THREE.Color(palette.sky);
 
   const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
   camera.position.set(0, 1.6, 9);
 
   const sun = new THREE.Mesh(
     new THREE.CircleGeometry(1.5, 32),
-    new THREE.MeshBasicMaterial({ color: 0xffb84d })
+    new THREE.MeshBasicMaterial({ color: palette.sun })
   );
   sun.position.set(-2.2, 3.4, -6);
   scene.add(sun);
 
   const halo = new THREE.Mesh(
     new THREE.CircleGeometry(2.4, 32),
-    new THREE.MeshBasicMaterial({ color: 0xff7a5c, transparent: true, opacity: 0.35 })
+    new THREE.MeshBasicMaterial({ color: palette.halo, transparent: true, opacity: 0.35 })
   );
   halo.position.copy(sun.position);
   halo.position.z -= 0.1;
   scene.add(halo);
 
-  const ridgeColors = [0x3a5f8a, 0x2f7a5c, 0x1f5c3f];
+  const ridgeColors = palette.ridges;
   const ridgeConfigs = [
     { z: -4, height: 4.2, width: 14, color: ridgeColors[0] },
     { z: -1.5, height: 3.2, width: 12, color: ridgeColors[1] },
@@ -101,7 +107,8 @@ function buildNatureScene(){
 
 function initDitherStage(el){
   const canvas = el.querySelector('canvas');
-  const { scene, camera, sun, ridges } = buildNatureScene();
+  const paletteKey = el.dataset.palette || 'earth';
+  const { scene, camera, sun, ridges } = buildNatureScene(paletteKey);
 
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: false });
   renderer.setPixelRatio(1);

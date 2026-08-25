@@ -16,6 +16,7 @@ function showPage(id){
   void next.offsetWidth;
   next.classList.add('active');
   window.scrollTo(0,0);
+  document.documentElement.classList.toggle('about-page-active', id === 'about');
   window.dispatchEvent(new Event('resize'));
 
   if(id === 'about' && typeof maybeShowMusicGate === 'function') maybeShowMusicGate();

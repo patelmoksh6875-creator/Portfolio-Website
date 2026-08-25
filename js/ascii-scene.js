@@ -63,7 +63,13 @@ function buildScene(kind){
   return { scene, camera, mesh, kind };
 }
 
-const COLORS = { light: '#f0ede6', sage: '#6b6a5f' };
+const COLORS = {
+  light: '#f0ede6',
+  sage: '#6b6a5f',
+  violet: '#a78bfa',
+  teal: '#5eead4',
+  gold: '#fcd34d'
+};
 
 function initStage(el){
   const kind = el.dataset.scene;
@@ -95,7 +101,7 @@ function initStage(el){
   resize();
   window.addEventListener('resize', resize);
 
-  const spinSpeed = kind === 'hero' ? 0.0015 : 0.006;
+  const spinSpeed = kind === 'hero' ? 0.0015 : 0.009;
   let raf;
   function animate(){
     raf = requestAnimationFrame(animate);
