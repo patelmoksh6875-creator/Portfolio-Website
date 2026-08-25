@@ -115,9 +115,9 @@ function openLightbox(piece){
   media.querySelectorAll('video').forEach(v => { v.removeAttribute('loop'); v.setAttribute('controls', ''); });
   lightboxMedia.innerHTML = '';
   lightboxMedia.appendChild(media);
-  lightboxTitle.textContent = piece.dataset.title;
-  lightboxMedium.textContent = piece.dataset.medium;
-  lightboxDesc.textContent = piece.dataset.desc;
+  lightboxTitle.textContent = piece.querySelector('.piece-title').textContent;
+  lightboxMedium.textContent = piece.querySelector('.piece-medium').textContent;
+  lightboxDesc.textContent = piece.querySelector('.piece-desc').textContent;
   lightbox.hidden = false;
   requestAnimationFrame(() => lightbox.classList.add('showing'));
 }
