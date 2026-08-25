@@ -16,23 +16,23 @@
 </head>
 <body>
 
-<div id="music-gate">
+<div id="music-gate" hidden>
   <div class="gate-inner">
     <div class="gate-eyebrow">choose a track to enter</div>
     <div class="gate-list">
-      <button class="gate-track" data-src="/audio/track-1.mp3" data-title="track one">
+      <button class="gate-track" data-src="/audio/track-1.mp3" data-title="midnight drive">
         <span class="gate-track-num">01</span>
         <span class="gate-track-title">midnight drive</span>
       </button>
-      <button class="gate-track" data-src="/audio/track-2.mp3" data-title="track two">
+      <button class="gate-track" data-src="/audio/track-2.mp3" data-title="slow static">
         <span class="gate-track-num">02</span>
         <span class="gate-track-title">slow static</span>
       </button>
-      <button class="gate-track" data-src="/audio/track-3.mp3" data-title="track three">
+      <button class="gate-track" data-src="/audio/track-3.mp3" data-title="glass hallway">
         <span class="gate-track-num">03</span>
         <span class="gate-track-title">glass hallway</span>
       </button>
-      <button class="gate-track" data-src="/audio/track-4.mp3" data-title="track four">
+      <button class="gate-track" data-src="/audio/track-4.mp3" data-title="no signal">
         <span class="gate-track-num">04</span>
         <span class="gate-track-title">no signal</span>
       </button>
@@ -44,6 +44,11 @@
 
 <audio id="bg-audio" loop preload="none"></audio>
 
+<div id="mini-player" class="mini-player" hidden>
+  <button class="mini-player-toggle" id="mini-player-toggle" aria-label="play or pause">❚❚</button>
+  <span class="mini-player-title" id="mini-player-title">—</span>
+</div>
+
 <header>
   <div class="wrap header-inner">
     <a href="#" class="logo" onclick="showPage('home');return false;">moksh [last name]</a>
@@ -52,7 +57,6 @@
       <a href="#" data-page="blog" onclick="showPage('blog');return false;">blog</a>
       <a href="#" data-page="about" onclick="showPage('about');return false;">about</a>
       <a href="#" data-page="contact" onclick="showPage('contact');return false;">contact</a>
-      <button class="audio-toggle" id="audio-toggle" aria-label="toggle sound" title="toggle sound" hidden>♪</button>
     </nav>
   </div>
 </header>

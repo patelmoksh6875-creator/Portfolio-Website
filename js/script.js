@@ -1,11 +1,22 @@
 function showPage(id){
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById('page-' + id).classList.add('active');
+  const current = document.querySelector('.page.active');
+  const next = document.getElementById('page-' + id);
+  if(current === next) return;
+
   document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
   const navLink = document.querySelector('nav a[data-page="'+id+'"]');
   if(navLink) navLink.classList.add('active');
+
+  if(current){
+    current.classList.add('leaving');
+    current.classList.remove('active');
+    setTimeout(() => current.classList.remove('leaving'), 320);
+  }
+  next.classList.add('active');
   window.scrollTo(0,0);
   window.dispatchEvent(new Event('resize'));
+
+  if(id === 'about' && typeof maybeShowMusicGate === 'function') maybeShowMusicGate();
 }
 
 const tlObserver = new IntersectionObserver((entries) => {
@@ -24,45 +35,60 @@ const interestObserver = new IntersectionObserver((entries) => {
 
 document.querySelectorAll('.interest').forEach(item => interestObserver.observe(item));
 
-/* music gate */
-(function(){
-  const gate = document.getElementById('music-gate');
-  const audio = document.getElementById('bg-audio');
-  const toggle = document.getElementById('audio-toggle');
-  const skipBtn = document.getElementById('gate-skip');
+/* music gate — triggers only the first time About is opened this session */
+const gate = document.getElementById('music-gate');
+const audio = document.getElementById('bg-audio');
+const skipBtn = document.getElementById('gate-skip');
+const miniPlayer = document.getElementById('mini-player');
+const miniToggle = document.getElementById('mini-player-toggle');
+const miniTitle = document.getElementById('mini-player-title');
 
-  function enterSite(src, title){
-    if(src){
-      audio.src = src;
-      audio.volume = 0.6;
-      audio.play().catch(() => {});
-      toggle.hidden = false;
-      toggle.title = 'playing: ' + title;
-    }
-    sessionStorage.setItem('gate-passed', '1');
-    gate.classList.add('hidden');
-    setTimeout(() => { gate.hidden = true; }, 500);
-  }
-
-  document.querySelectorAll('.gate-track').forEach(btn => {
-    btn.addEventListener('click', () => {
-      enterSite(btn.dataset.src, btn.dataset.title);
-    });
+function maybeShowMusicGate(){
+  if(sessionStorage.getItem('gate-decided') === '1') return;
+  gate.hidden = false;
+  gate.classList.add('fading');
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => gate.classList.remove('fading'));
   });
+}
 
-  skipBtn.addEventListener('click', () => enterSite(null, null));
+function closeGate(){
+  gate.classList.add('fading');
+  setTimeout(() => { gate.hidden = true; }, 400);
+  sessionStorage.setItem('gate-decided', '1');
+}
 
-  toggle.addEventListener('click', () => {
-    if(audio.paused){
-      audio.play().catch(() => {});
-      toggle.classList.remove('muted');
-    } else {
-      audio.pause();
-      toggle.classList.add('muted');
-    }
-  });
+function showMiniPlayer(title){
+  miniTitle.textContent = title;
+  miniToggle.textContent = '❚❚';
+  miniPlayer.hidden = false;
+  requestAnimationFrame(() => miniPlayer.classList.add('showing'));
+}
 
-  if(sessionStorage.getItem('gate-passed') === '1'){
-    gate.hidden = true;
+function enterSite(src, title){
+  if(src){
+    audio.src = src;
+    audio.volume = 0.6;
+    audio.play().catch(() => {});
+    showMiniPlayer(title);
   }
-})();
+  closeGate();
+}
+
+document.querySelectorAll('.gate-track').forEach(btn => {
+  btn.addEventListener('click', () => {
+    enterSite(btn.dataset.src, btn.dataset.title);
+  });
+});
+
+skipBtn.addEventListener('click', () => enterSite(null, null));
+
+miniToggle.addEventListener('click', () => {
+  if(audio.paused){
+    audio.play().catch(() => {});
+    miniToggle.textContent = '❚❚';
+  } else {
+    audio.pause();
+    miniToggle.textContent = '▶';
+  }
+});
