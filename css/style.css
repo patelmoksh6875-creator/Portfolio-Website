@@ -101,9 +101,9 @@ main{flex:1 0 auto; position:relative;}
   position:absolute;
   inset:0;
   z-index:0;
-  opacity:0.4;
   pointer-events:none;
 }
+.hero-ascii canvas{width:100% !important; height:100% !important; display:block;}
 .hero-panel .wrap{position:relative; z-index:1;}
 .timeline-panel{
   background:var(--bg);
@@ -157,10 +157,13 @@ h1 em{font-style:italic; color:var(--muted);}
   font-size:44px;
   letter-spacing:0.01em;
   text-transform:uppercase;
-  color:var(--sage-text);
+  color:#f6f1e4;
+  text-shadow:0 2px 24px rgba(0,0,0,0.45);
   margin:0;
 }
 .brand-tag{
+  color:#e8e2d0;
+  text-shadow:0 1px 12px rgba(0,0,0,0.4);
   font-family:Arial, Helvetica, sans-serif;
   font-size:11px;
   letter-spacing:0.18em;
