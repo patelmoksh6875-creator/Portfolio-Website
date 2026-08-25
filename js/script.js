@@ -57,8 +57,15 @@ function maybeShowMusicGate(){
 
 function closeGate(){
   gate.classList.add('fading');
-  setTimeout(() => { gate.hidden = true; }, 400);
+  setTimeout(() => { gate.hidden = true; }, 700);
   sessionStorage.setItem('gate-decided', '1');
+
+  const heroCopy = document.querySelector('.about-hero-copy');
+  if(heroCopy){
+    heroCopy.classList.remove('reveal');
+    void heroCopy.offsetWidth;
+    heroCopy.classList.add('reveal');
+  }
 }
 
 function showMiniPlayer(title){

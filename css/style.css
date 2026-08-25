@@ -465,6 +465,11 @@ html.about-page-active{scroll-snap-type:y mandatory;}
 }
 .about-hero .hero-ascii{position:absolute; inset:0; z-index:0; pointer-events:none;}
 .about-hero-copy{position:relative; z-index:1; text-align:center;}
+.about-hero-copy.reveal{animation:hero-reveal 0.9s var(--ease);}
+@keyframes hero-reveal{
+  from{opacity:0; transform:scale(0.92) translateY(14px); filter:blur(6px);}
+  to{opacity:1; transform:scale(1) translateY(0); filter:blur(0);}
+}
 .about-hero-copy h1{
   font-size:34px;
   color:#f5f3ff;
@@ -558,11 +563,25 @@ html.about-page-active{scroll-snap-type:y mandatory;}
   align-items:center;
   justify-content:center;
   opacity:1;
-  transition:opacity 0.4s var(--ease);
+  filter:blur(0px);
+  transform:scale(1);
+  transition:opacity 0.7s var(--ease), filter 0.7s var(--ease), transform 0.7s var(--ease);
 }
-#music-gate.fading{opacity:0; pointer-events:none;}
+#music-gate.fading{
+  opacity:0;
+  filter:blur(22px);
+  transform:scale(1.08);
+  pointer-events:none;
+}
 #music-gate[hidden]{display:none;}
-.gate-inner{width:100%; max-width:420px; padding:0 24px; text-align:center;}
+.gate-inner{
+  width:100%;
+  max-width:420px;
+  padding:0 24px;
+  text-align:center;
+  transition:opacity 0.5s var(--ease), transform 0.5s var(--ease);
+}
+#music-gate.fading .gate-inner{opacity:0; transform:translateY(-14px);}
 .gate-eyebrow{
   font-family:var(--mono);
   font-size:12px;
