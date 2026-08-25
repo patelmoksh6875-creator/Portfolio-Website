@@ -271,6 +271,81 @@ footer{
   width:100%;
 }
 
+/* music gate */
+#music-gate{
+  position:fixed;
+  inset:0;
+  z-index:1000;
+  background:var(--bg);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:opacity 0.5s ease;
+}
+#music-gate.hidden{opacity:0; pointer-events:none;}
+#music-gate[hidden]{display:none;}
+.gate-inner{width:100%; max-width:420px; padding:0 24px; text-align:center;}
+.gate-eyebrow{
+  font-family:var(--mono);
+  font-size:12px;
+  letter-spacing:0.06em;
+  text-transform:lowercase;
+  color:var(--accent);
+  margin-bottom:28px;
+}
+.gate-list{display:flex; flex-direction:column; gap:2px;}
+.gate-track{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  width:100%;
+  background:none;
+  border:1px solid var(--line);
+  border-bottom:none;
+  color:var(--text);
+  font-family:var(--sans);
+  font-size:13.5px;
+  padding:16px 18px;
+  cursor:pointer;
+  text-align:left;
+  transition:background 0.2s ease, color 0.2s ease;
+}
+.gate-list .gate-track:last-child{border-bottom:1px solid var(--line);}
+.gate-track:hover{background:var(--bg-raised); color:var(--accent);}
+.gate-track-num{font-family:var(--mono); font-size:11px; color:var(--muted);}
+.gate-track:hover .gate-track-num{color:var(--accent);}
+.gate-hint{font-size:11px; color:var(--muted); margin-top:24px;}
+.gate-skip{
+  background:none;
+  border:none;
+  color:var(--muted);
+  font-family:var(--mono);
+  font-size:12px;
+  margin-top:8px;
+  cursor:pointer;
+  text-decoration:underline;
+  text-underline-offset:3px;
+}
+.gate-skip:hover{color:var(--text);}
+
+.audio-toggle{
+  background:none;
+  border:1px solid var(--line);
+  color:var(--muted);
+  font-size:12px;
+  width:26px;
+  height:26px;
+  border-radius:50%;
+  cursor:pointer;
+  line-height:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:color 0.2s ease, border-color 0.2s ease;
+}
+.audio-toggle:hover{color:var(--accent); border-color:var(--accent);}
+.audio-toggle.muted{color:var(--muted); text-decoration:line-through;}
+
 ::selection{background:var(--text); color:var(--bg);}
 
 @media(max-width:520px){
