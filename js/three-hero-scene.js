@@ -2,6 +2,50 @@ import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
 function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
+function easeInOutCubic(t){ return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
+
+function v(x, y, z){ return new THREE.Vector3(x, y, z); }
+
+// each path: establishing shot -> push in -> travel through/inside the object -> slow turn to the side -> settle
+const PATHS = {
+  camera: [
+    { t: 0,    pos: v(3, 2.4, 11),      look: v(0.2, -0.02, 2.1) },
+    { t: 0.22, pos: v(0.3, 0.15, 3.1),  look: v(0.2, -0.02, 2.1) },
+    { t: 0.48, pos: v(0.15, -0.05, 2.55), look: v(0.15, -0.05, 4) },
+    { t: 0.75, pos: v(1.7, 0.45, 1.0),  look: v(0, 0, 0) },
+    { t: 1,    pos: v(1.1, 0.5, 1.7),   look: v(0.1, 0, 0.3) }
+  ],
+  mixer: [
+    { t: 0,    pos: v(3, 2.4, 11),    look: v(0, 0.32, 0.4) },
+    { t: 0.22, pos: v(0, 1.6, 2.6),   look: v(0, 0.32, 0.4) },
+    { t: 0.48, pos: v(0, 0.5, 0.35),  look: v(0, 0.3, -0.6) },
+    { t: 0.75, pos: v(2.5, 0.95, 1.0), look: v(0, 0.25, 0) },
+    { t: 1,    pos: v(1.8, 1.1, 1.7),  look: v(0, 0.28, 0.2) }
+  ],
+  canvas: [
+    { t: 0,    pos: v(3, 2.4, 11),     look: v(0, 0, 0.5) },
+    { t: 0.22, pos: v(0.4, 0.2, 2.4),  look: v(0, 0, 0.5) },
+    { t: 0.48, pos: v(0.3, 0.1, -0.6), look: v(0.2, -0.1, -1.0) },
+    { t: 0.75, pos: v(2.1, 0.65, 0.4), look: v(0, 0, 0) },
+    { t: 1,    pos: v(1.5, 0.7, 1.1),  look: v(0.1, 0, 0.3) }
+  ]
+};
+
+function sampleCameraPath(kfs, t){
+  for(let i = 0; i < kfs.length - 1; i++){
+    const a = kfs[i], b = kfs[i + 1];
+    if(t >= a.t && t <= b.t){
+      const localT = (t - a.t) / (b.t - a.t || 1);
+      const eased = easeInOutCubic(localT);
+      return {
+        pos: new THREE.Vector3().lerpVectors(a.pos, b.pos, eased),
+        look: new THREE.Vector3().lerpVectors(a.look, b.look, eased)
+      };
+    }
+  }
+  const last = kfs[kfs.length - 1];
+  return { pos: last.pos.clone(), look: last.look.clone() };
+}
 
 function buildCamera(accent){
   const group = new THREE.Group();
@@ -281,21 +325,18 @@ const BUILDERS = { camera: buildCamera, mixer: buildMixer, canvas: buildCanvas }
 function initHero(el){
   const kind = el.dataset.scene;
   const canvas = el.querySelector('canvas');
-  const accentHex = getComputedStyle(el.closest('.disc-hero')).getPropertyValue('--accent').trim() || '#f0ede6';
+  const heroSection = el.closest('.disc-hero');
+  const copy = heroSection.querySelector('.disc-hero-copy');
+  const accentHex = getComputedStyle(heroSection).getPropertyValue('--accent').trim() || '#f0ede6';
   const accent = new THREE.Color(accentHex);
+  const path = PATHS[kind];
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x0b0b12);
   scene.fog = new THREE.Fog(0x0b0b12, 6, 16);
 
   const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
-  const farPos = new THREE.Vector3(3, 2.4, 11);
-  const nearPos = kind === 'camera'
-    ? new THREE.Vector3(0.3, 0.15, 3.1)
-    : kind === 'mixer'
-      ? new THREE.Vector3(0, 1.6, 2.6)
-      : new THREE.Vector3(0.4, 0.2, 2.4);
-  camera.position.copy(farPos);
+  camera.position.copy(path[0].pos);
 
   scene.add(new THREE.AmbientLight(0xffffff, 0.5));
   const key = new THREE.PointLight(accent, 2.2, 20);
@@ -323,20 +364,40 @@ function initHero(el){
 
   let raf;
   let animStart = null;
-  const ZOOM_DURATION = 2200;
+  let revealed = false;
+  const PATH_DURATION = 5200;
   let idleT = 0;
+  const settled = path[path.length - 1];
 
   function animate(now){
     raf = requestAnimationFrame(animate);
     if(animStart === null) animStart = now;
     const elapsed = now - animStart;
-    const t = Math.min(elapsed / ZOOM_DURATION, 1);
-    const eased = easeOutCubic(t);
-    camera.position.lerpVectors(farPos, nearPos, eased);
-    camera.lookAt(built.focus);
+    const t = Math.min(elapsed / PATH_DURATION, 1);
 
-    idleT += 0.01;
-    built.group.rotation.y = Math.sin(idleT * 0.4) * 0.15 + (t < 1 ? (1 - eased) * 0.6 : 0);
+    if(t < 1){
+      const { pos, look } = sampleCameraPath(path, t);
+      camera.position.copy(pos);
+      camera.lookAt(look);
+    } else {
+      idleT += 0.01;
+      camera.position.set(
+        settled.pos.x + Math.sin(idleT * 0.3) * 0.22,
+        settled.pos.y + Math.sin(idleT * 0.2) * 0.06,
+        settled.pos.z + Math.cos(idleT * 0.3) * 0.22
+      );
+      camera.lookAt(settled.look);
+      if(!revealed){
+        revealed = true;
+        if(copy){
+          copy.classList.remove('reveal');
+          void copy.offsetWidth;
+          copy.classList.add('reveal');
+        }
+      }
+    }
+
+    built.group.rotation.y = Math.sin(idleT * 0.25) * 0.08;
     if(built.discs) built.discs.forEach(d => { d.rotation.y += 0.03; });
     if(built.floaters) built.floaters.forEach((f, i) => {
       f.rotation.x += 0.005 + i * 0.001;
@@ -349,7 +410,11 @@ function initHero(el){
   const io = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if(entry.isIntersecting){
-        if(entry.intersectionRatio > 0.5) animStart = null;
+        if(entry.intersectionRatio > 0.5){
+          animStart = null;
+          revealed = false;
+          if(copy) copy.classList.remove('reveal');
+        }
         if(!raf) raf = requestAnimationFrame(animate);
       } else {
         cancelAnimationFrame(raf);

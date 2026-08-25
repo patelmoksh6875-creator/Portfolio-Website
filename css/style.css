@@ -439,17 +439,7 @@ footer{
   width:100%;
 }
 
-/* about page */
-#page-about{
-  --bg: #120f1f;
-  --bg-raised: #1c1730;
-  --text: #f5f3ff;
-  --muted: #a89fc9;
-  --line: #34294f;
-  --accent: #ff5d8f;
-  background:var(--bg);
-  color:var(--text);
-}
+/* about page — same black/beige palette as the rest of the site */
 .about-inner{padding:0 0 100px;}
 
 html.about-page-active{scroll-snap-type:y mandatory;}
@@ -472,15 +462,15 @@ html.about-page-active{scroll-snap-type:y mandatory;}
 }
 .about-hero-copy h1{
   font-size:34px;
-  color:#f5f3ff;
+  color:var(--text);
   text-shadow:0 2px 24px rgba(0,0,0,0.5);
 }
-.about-hero-copy .eyebrow{color:#ffd166;}
+.about-hero-copy .eyebrow{color:var(--accent);}
 .scroll-cue{
   font-family:var(--mono);
   font-size:11px;
   letter-spacing:0.08em;
-  color:#c9c0ee;
+  color:var(--muted);
   margin-top:18px;
   animation:scroll-cue-bob 1.8s var(--ease) infinite;
 }
@@ -489,13 +479,7 @@ html.about-page-active{scroll-snap-type:y mandatory;}
   50%{transform:translateY(6px); opacity:1;}
 }
 
-/* discipline modules: 3d hero + process/gallery content, one pair per interest */
-#page-about .disc-hero[data-discipline="cinematography"]{--accent: #ffd166;}
-#page-about .disc-hero[data-discipline="djing"]{--accent: #7c5cff;}
-#page-about .disc-hero[data-discipline="design"]{--accent: #00e5c4;}
-#page-about .disc-content[data-discipline="cinematography"]{--accent: #ffd166;}
-#page-about .disc-content[data-discipline="djing"]{--accent: #7c5cff;}
-#page-about .disc-content[data-discipline="design"]{--accent: #00e5c4;}
+/* discipline modules: 3d hero + process/gallery content, one pair per interest — accent stays the site's standard beige */
 
 .disc-hero{
   position:relative;
@@ -515,7 +499,9 @@ html.about-page-active{scroll-snap-type:y mandatory;}
   z-index:1;
   text-align:center;
   padding-bottom:72px;
+  opacity:0;
 }
+.disc-hero-copy.reveal{opacity:1; animation:hero-reveal 0.9s var(--ease);}
 .disc-hero-copy .eyebrow{color:var(--accent);}
 .disc-hero-copy h2{
   font-family:var(--serif);
