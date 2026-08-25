@@ -16,6 +16,14 @@ const tlObserver = new IntersectionObserver((entries) => {
 
 document.querySelectorAll('.tl-item').forEach(item => tlObserver.observe(item));
 
+const interestObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if(entry.isIntersecting) entry.target.classList.add('in-view');
+  });
+}, { threshold: 0.2 });
+
+document.querySelectorAll('.interest').forEach(item => interestObserver.observe(item));
+
 /* music gate */
 (function(){
   const gate = document.getElementById('music-gate');
