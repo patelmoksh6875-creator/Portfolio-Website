@@ -8,10 +8,12 @@ function showPage(id){
   if(navLink) navLink.classList.add('active');
 
   if(current){
-    current.classList.add('leaving');
     current.classList.remove('active');
+    current.classList.add('leaving');
     setTimeout(() => current.classList.remove('leaving'), 320);
   }
+  next.classList.remove('active');
+  void next.offsetWidth;
   next.classList.add('active');
   window.scrollTo(0,0);
   window.dispatchEvent(new Event('resize'));
