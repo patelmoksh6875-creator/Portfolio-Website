@@ -5,6 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>moksh — portfolio</title>
 <link rel="stylesheet" href="css/style.css">
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
 </head>
 <body>
 
@@ -189,9 +197,54 @@
 
   <!-- ABOUT -->
   <div class="page" id="page-about">
-   <div class="page-inner"><div class="wrap">
+   <div class="about-inner"><div class="wrap">
     <span class="eyebrow">about</span>
-    <!-- left blank on purpose — redesigning this page separately -->
+    <h1>what i do outside the lab.</h1>
+
+    <section class="interest" id="interest-djing">
+      <div class="interest-media">
+        <div class="ascii-stage" data-scene="djing"><canvas></canvas></div>
+      </div>
+      <div class="interest-copy">
+        <div class="section-title">djing</div>
+        <p class="lede">mixing sets that move between genres without losing the room.</p>
+        <div class="video-frame">
+          <video controls preload="none" poster="assets/video/djing-poster.jpg">
+            <source src="assets/video/djing-placeholder.mp4" type="video/mp4">
+          </video>
+        </div>
+      </div>
+    </section>
+
+    <section class="interest" id="interest-design">
+      <div class="interest-media">
+        <div class="ascii-stage" data-scene="design"><canvas></canvas></div>
+      </div>
+      <div class="interest-copy">
+        <div class="section-title">graphic design</div>
+        <p class="lede">posters, covers, and identity work — clean shapes, deliberate type.</p>
+        <div class="video-frame">
+          <video controls preload="none" poster="assets/video/design-poster.jpg">
+            <source src="assets/video/design-placeholder.mp4" type="video/mp4">
+          </video>
+        </div>
+      </div>
+    </section>
+
+    <section class="interest" id="interest-cinematography">
+      <div class="interest-media">
+        <div class="ascii-stage" data-scene="cinematography"><canvas></canvas></div>
+      </div>
+      <div class="interest-copy">
+        <div class="section-title">cinematography</div>
+        <p class="lede">short handheld pieces — framing, movement, and light over gear.</p>
+        <div class="video-frame">
+          <video controls preload="none" poster="assets/video/cinematography-poster.jpg">
+            <source src="assets/video/cinematography-placeholder.mp4" type="video/mp4">
+          </video>
+        </div>
+      </div>
+    </section>
    </div></div>
   </div>
 
@@ -227,6 +280,7 @@
 </footer>
 
 <script src="js/script.js"></script>
+<script type="module" src="js/ascii-scene.js"></script>
 
 </body>
 </html>

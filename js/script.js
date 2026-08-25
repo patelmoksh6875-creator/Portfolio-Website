@@ -5,6 +5,7 @@ function showPage(id){
   const navLink = document.querySelector('nav a[data-page="'+id+'"]');
   if(navLink) navLink.classList.add('active');
   window.scrollTo(0,0);
+  window.dispatchEvent(new Event('resize'));
 }
 
 const tlObserver = new IntersectionObserver((entries) => {
