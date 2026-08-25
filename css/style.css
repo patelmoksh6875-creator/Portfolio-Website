@@ -13,6 +13,7 @@
   --mono: Arial, Helvetica, sans-serif;
 }
 *{box-sizing:border-box; margin:0; padding:0;}
+html{scroll-behavior:smooth;}
 html, body{height:100%;}
 body{
   background:var(--bg);
