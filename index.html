@@ -114,53 +114,66 @@
 
   <!-- PROJECTS -->
   <div class="page" id="page-projects">
-   <div class="page-inner"><div class="wrap">
+   <div class="page-inner"><div class="wrap wrap-wide">
     <span class="eyebrow">projects</span>
     <h1>things i've built.</h1>
+    <p class="lede">a small gallery — click a piece for a closer look.</p>
 
-    <section>
-      <div class="section-title">completed</div>
-      <div class="row-list">
-        <a class="row" href="#">
-          <div class="row-main">
-            <div class="row-title">3d scanner pipeline<span class="arrow">↗</span></div>
-            <div class="row-desc">photogrammetry via COLMAP</div>
-          </div>
-          <div class="row-meta">cv</div>
-        </a>
-        <a class="row" href="#">
-          <div class="row-main">
-            <div class="row-title">target speaker extraction<span class="arrow">↗</span></div>
-            <div class="row-desc">isolating voices from crowd audio</div>
-          </div>
-          <div class="row-meta">audio ml</div>
-        </a>
-        <a class="row" href="#">
-          <div class="row-main">
-            <div class="row-title">sf ai &amp; vc atlas<span class="arrow">↗</span></div>
-            <div class="row-desc">a spatial map of SF's AI scene</div>
-          </div>
-          <div class="row-meta">web</div>
-        </a>
-        <a class="row" href="#">
-          <div class="row-main">
-            <div class="row-title">codecoach<span class="arrow">↗</span></div>
-            <div class="row-desc">an in-browser AI code tutor</div>
-          </div>
-          <div class="row-meta">web</div>
-        </a>
-      </div>
-    </section>
-
-    <section>
-      <div class="section-title">in progress</div>
-      <div class="row-list">
-        <div class="row">
-          <div class="row-main">
-            <div class="row-title" style="color:var(--muted)">tbd</div>
-          </div>
+    <div class="gallery">
+      <figure class="piece" data-title="3d scanner pipeline" data-medium="computer vision · 2026" data-desc="photogrammetry via COLMAP — turning a set of handheld photos into a dense 3d reconstruction.">
+        <div class="piece-media">
+          <span class="piece-placeholder-label">image coming soon</span>
+          <img src="assets/projects/3d-scanner.jpg" alt="3d scanner pipeline" loading="lazy" onerror="this.style.display='none'">
         </div>
-      </div>
+        <figcaption class="piece-caption">
+          <div class="piece-title">3d scanner pipeline</div>
+          <div class="piece-medium">computer vision · 2026</div>
+          <div class="piece-desc">photogrammetry via COLMAP</div>
+        </figcaption>
+      </figure>
+
+      <figure class="piece" data-title="target speaker extraction" data-medium="audio ml · 2026" data-desc="isolating a single voice from crowd audio using a target-speaker separation model.">
+        <div class="piece-media piece-media-video">
+          <span class="piece-placeholder-label">video coming soon</span>
+          <video muted loop playsinline preload="none" poster="assets/projects/target-speaker-poster.jpg">
+            <source src="assets/projects/target-speaker-placeholder.mp4" type="video/mp4">
+          </video>
+        </div>
+        <figcaption class="piece-caption">
+          <div class="piece-title">target speaker extraction</div>
+          <div class="piece-medium">audio ml · 2026</div>
+          <div class="piece-desc">isolating voices from crowd audio</div>
+        </figcaption>
+      </figure>
+
+      <figure class="piece" data-title="sf ai & vc atlas" data-medium="web · 2026" data-desc="a spatial map of SF's AI scene — labs, offices, and the investors funding them.">
+        <div class="piece-media">
+          <span class="piece-placeholder-label">image coming soon</span>
+          <img src="assets/projects/sf-atlas.jpg" alt="sf ai & vc atlas" loading="lazy" onerror="this.style.display='none'">
+        </div>
+        <figcaption class="piece-caption">
+          <div class="piece-title">sf ai &amp; vc atlas</div>
+          <div class="piece-medium">web · 2026</div>
+          <div class="piece-desc">a spatial map of SF's AI scene</div>
+        </figcaption>
+      </figure>
+
+      <figure class="piece" data-title="codecoach" data-medium="web · 2026" data-desc="an in-browser AI code tutor that walks through a learner's own code, not a canned example.">
+        <div class="piece-media">
+          <span class="piece-placeholder-label">image coming soon</span>
+          <img src="assets/projects/codecoach.jpg" alt="codecoach" loading="lazy" onerror="this.style.display='none'">
+        </div>
+        <figcaption class="piece-caption">
+          <div class="piece-title">codecoach</div>
+          <div class="piece-medium">web · 2026</div>
+          <div class="piece-desc">an in-browser AI code tutor</div>
+        </figcaption>
+      </figure>
+    </div>
+
+    <section class="in-progress-note">
+      <div class="section-title">in progress</div>
+      <p class="lede" style="color:var(--muted)">tbd</p>
     </section>
    </div></div>
   </div>
@@ -282,6 +295,19 @@
   </div>
 
 </main>
+
+<div id="lightbox" class="lightbox" hidden>
+  <div class="lightbox-backdrop" id="lightbox-backdrop"></div>
+  <div class="lightbox-content">
+    <button class="lightbox-close" id="lightbox-close" aria-label="close">✕</button>
+    <div class="lightbox-media" id="lightbox-media"></div>
+    <div class="lightbox-caption">
+      <div class="lightbox-title" id="lightbox-title"></div>
+      <div class="lightbox-medium" id="lightbox-medium"></div>
+      <div class="lightbox-desc" id="lightbox-desc"></div>
+    </div>
+  </div>
+</div>
 
 <footer>
   <span>© 2026 moksh</span>
