@@ -489,68 +489,85 @@ html.about-page-active{scroll-snap-type:y mandatory;}
   50%{transform:translateY(6px); opacity:1;}
 }
 
-.interest{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:36px;
-  align-items:center;
-  max-width:960px;
-  margin:0 auto;
-  padding:0 24px;
+/* discipline modules: 3d hero + process/gallery content, one pair per interest */
+#page-about .disc-hero[data-discipline="cinematography"]{--accent: #ffd166;}
+#page-about .disc-hero[data-discipline="djing"]{--accent: #7c5cff;}
+#page-about .disc-hero[data-discipline="design"]{--accent: #00e5c4;}
+#page-about .disc-content[data-discipline="cinematography"]{--accent: #ffd166;}
+#page-about .disc-content[data-discipline="djing"]{--accent: #7c5cff;}
+#page-about .disc-content[data-discipline="design"]{--accent: #00e5c4;}
+
+.disc-hero{
+  position:relative;
   min-height:100vh;
-  opacity:0;
-  transform:translateY(16px);
-  transition:opacity 0.6s var(--ease), transform 0.6s var(--ease);
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+  overflow:hidden;
+  scroll-snap-align:start;
+  scroll-snap-stop:always;
+  background:var(--bg);
+}
+.disc-stage{position:absolute; inset:0; z-index:0;}
+.disc-stage canvas{width:100% !important; height:100% !important; display:block;}
+.disc-hero-copy{
+  position:relative;
+  z-index:1;
+  text-align:center;
+  padding-bottom:72px;
+}
+.disc-hero-copy .eyebrow{color:var(--accent);}
+.disc-hero-copy h2{
+  font-family:var(--serif);
+  font-weight:400;
+  font-size:32px;
+  color:var(--text);
+  text-shadow:0 2px 30px rgba(0,0,0,0.6);
+}
+.disc-hero-copy .scroll-cue{color:var(--muted);}
+
+.disc-content{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  padding:80px 0;
   scroll-snap-align:start;
   scroll-snap-stop:always;
 }
-.interest.in-view{opacity:1; transform:translateY(0);}
-.interest:nth-child(even) .interest-media{order:2;}
-#page-about .interest:nth-of-type(2){--accent: #7c5cff;}
-#page-about .interest:nth-of-type(3){--accent: #00e5c4;}
-#page-about .interest:nth-of-type(4){--accent: #ffd166;}
-.ascii-stage{
-  width:100%;
-  aspect-ratio:1/1;
-  background:
-    radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--accent) 30%, transparent), transparent 70%),
-    var(--bg-raised);
-  border:1px solid var(--line);
-  overflow:hidden;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  transition:border-color 0.4s var(--ease);
-}
-.interest.in-view .ascii-stage{border-color:var(--accent);}
-.ascii-stage canvas{width:100% !important; height:100% !important;}
-.interest-copy .lede{margin-bottom:20px;}
-.video-frame{
-  position:relative;
-  width:100%;
-  aspect-ratio:16/9;
-  background:var(--bg-raised);
-  border:1px solid var(--line);
-  overflow:hidden;
-}
-.video-frame video{width:100%; height:100%; object-fit:cover; display:block;}
-.video-placeholder-label{
-  position:absolute;
-  inset:0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-family:var(--mono);
-  font-size:11px;
-  letter-spacing:0.06em;
-  text-transform:lowercase;
-  color:var(--muted);
-  pointer-events:none;
-}
 
-@media(max-width:640px){
-  .interest{grid-template-columns:1fr; gap:20px;}
-  .interest:nth-child(even) .interest-media{order:0;}
+.process-steps{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));
+  gap:28px;
+  margin-bottom:72px;
+}
+.process-step{
+  border-top:2px solid var(--accent);
+  padding-top:16px;
+  opacity:0;
+  transform:translateY(14px);
+  transition:opacity 0.6s var(--ease), transform 0.6s var(--ease);
+}
+.process-step.in-view{opacity:1; transform:translateY(0);}
+.process-step-num{
+  font-family:var(--mono);
+  font-size:12px;
+  color:var(--accent);
+  margin-bottom:8px;
+}
+.process-step-title{font-size:15px; font-weight:500; color:var(--text);}
+.process-step-desc{font-size:12.5px; color:var(--muted); margin-top:8px; line-height:1.6;}
+
+.disc-gallery{margin-top:32px; gap:56px;}
+.disc-gallery .piece{
+  opacity:0;
+  transform:translateY(20px);
+  transition:opacity 0.6s var(--ease), transform 0.6s var(--ease);
+}
+.disc-gallery .piece.in-view{opacity:1; transform:translateY(0);}
+
+@media(max-width:720px){
+  .disc-hero-copy h2{font-size:26px;}
 }
 
 /* music gate */

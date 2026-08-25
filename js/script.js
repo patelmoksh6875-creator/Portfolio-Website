@@ -30,13 +30,23 @@ const tlObserver = new IntersectionObserver((entries) => {
 
 document.querySelectorAll('.tl-item').forEach(item => tlObserver.observe(item));
 
-const interestObserver = new IntersectionObserver((entries) => {
+const stepObserver = new IntersectionObserver((entries) => {
+  entries.forEach((entry, i) => {
+    if(entry.isIntersecting){
+      setTimeout(() => entry.target.classList.add('in-view'), i * 60);
+    }
+  });
+}, { threshold: 0.25 });
+
+document.querySelectorAll('.process-step').forEach(item => stepObserver.observe(item));
+
+const pieceObserver = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
     if(entry.isIntersecting) entry.target.classList.add('in-view');
   });
-}, { threshold: 0.2 });
+}, { threshold: 0.15 });
 
-document.querySelectorAll('.interest').forEach(item => interestObserver.observe(item));
+document.querySelectorAll('.disc-gallery .piece').forEach(item => pieceObserver.observe(item));
 
 /* music gate — triggers only the first time About is opened this session */
 const gate = document.getElementById('music-gate');
