@@ -31,7 +31,7 @@ function buildScene(kind){
     const geo = new THREE.IcosahedronGeometry(2.6, 0);
     const m = new THREE.MeshStandardMaterial({ color: 0xffffff, flatShading: true });
     mesh = new THREE.Mesh(geo, m);
-  } else {
+  } else if(kind === 'cinematography'){
     const group = new THREE.Group();
     const frameGeo = new THREE.BoxGeometry(3, 2, 0.1);
     const edges = new THREE.EdgesGeometry(frameGeo);
@@ -42,6 +42,20 @@ function buildScene(kind){
     lens.position.z = 0.9;
     group.add(frame, lens);
     mesh = group;
+  } else {
+    // hero decoration — a low-poly mountain ridge, jittered for a hand-drawn feel
+    const geo = new THREE.ConeGeometry(3.4, 3, 7, 4, true);
+    const pos = geo.attributes.position;
+    for(let i = 0; i < pos.count; i++){
+      const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+      const jitter = Math.sin(x * 3.1 + z * 2.3) * 0.35;
+      pos.setXYZ(i, x, y + jitter, z);
+    }
+    geo.computeVertexNormals();
+    const m = new THREE.MeshStandardMaterial({ color: 0xffffff, flatShading: true, wireframe: false });
+    mesh = new THREE.Mesh(geo, m);
+    mesh.rotation.x = 0.15;
+    camera.position.set(0, 1.4, 8.5);
   }
 
   scene.add(mesh);
@@ -49,8 +63,11 @@ function buildScene(kind){
   return { scene, camera, mesh, kind };
 }
 
+const COLORS = { light: '#f0ede6', sage: '#6b6a5f' };
+
 function initStage(el){
   const kind = el.dataset.scene;
+  const colorKey = el.dataset.color || 'light';
   const canvas = el.querySelector('canvas');
   const { scene, camera, mesh } = buildScene(kind);
 
@@ -58,7 +75,7 @@ function initStage(el){
   renderer.setClearColor(0x000000, 0);
 
   const effect = new AsciiEffect(renderer, CHARS, { invert: true, resolution: 0.18 });
-  effect.domElement.style.color = '#f0ede6';
+  effect.domElement.style.color = COLORS[colorKey];
   effect.domElement.style.backgroundColor = 'transparent';
   effect.domElement.style.width = '100%';
   effect.domElement.style.height = '100%';
@@ -78,11 +95,12 @@ function initStage(el){
   resize();
   window.addEventListener('resize', resize);
 
+  const spinSpeed = kind === 'hero' ? 0.0015 : 0.006;
   let raf;
   function animate(){
     raf = requestAnimationFrame(animate);
-    mesh.rotation.y += 0.006;
-    mesh.rotation.x += 0.0015;
+    mesh.rotation.y += spinSpeed;
+    if(kind !== 'hero') mesh.rotation.x += 0.0015;
     if(kind === 'cinematography'){
       mesh.position.x = Math.sin(Date.now() * 0.0006) * 0.8;
     }
