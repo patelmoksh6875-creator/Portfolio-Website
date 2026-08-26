@@ -88,16 +88,28 @@ const gatePlayerArtist = document.getElementById('gate-player-artist');
 const gatePrevBtn = document.getElementById('gate-prev');
 const gateNextBtn = document.getElementById('gate-next');
 const gateEnterBtn = document.getElementById('gate-enter');
+const gateBgLayerA = document.querySelector('.gate-bg-layer-a');
+const gateBgLayerB = document.querySelector('.gate-bg-layer-b');
 
 let gateActiveIndex = 0;
+let gateBgFront = 'a';
 
 function isPreviewingCard(card){
   return !audio.paused && audio.currentSrc && audio.currentSrc.endsWith(card.dataset.src);
 }
 
+function updateGateBackground(){
+  const art = gateCards[gateActiveIndex].querySelector('.gate-art');
+  const nextLayer = gateBgFront === 'a' ? gateBgLayerB : gateBgLayerA;
+  const prevLayer = gateBgFront === 'a' ? gateBgLayerA : gateBgLayerB;
+  nextLayer.style.background = art.style.background;
+  nextLayer.style.opacity = '1';
+  prevLayer.style.opacity = '0';
+  gateBgFront = gateBgFront === 'a' ? 'b' : 'a';
+}
+
 function syncGateUI(){
-  gateCards.forEach((card, i) => {
-    card.classList.toggle('active', i === gateActiveIndex);
+  gateCards.forEach(card => {
     card.querySelector('.gate-play').textContent = isPreviewingCard(card) ? '❚❚' : '▶';
   });
   const active = gateCards[gateActiveIndex];
@@ -106,23 +118,46 @@ function syncGateUI(){
   gatePreviewToggle.textContent = isPreviewingCard(active) ? '❚❚' : '▶';
 }
 
-function updateActiveFromScroll(){
+// coverflow: continuously rotate/scale/arc every card by its live distance
+// from the carousel's center, so passing cards visibly tuck behind the next one
+function updateCarouselTransforms(){
   const center = gateCarousel.scrollLeft + gateCarousel.clientWidth / 2;
   let closest = 0;
   let closestDist = Infinity;
+
   gateCards.forEach((card, i) => {
     const cardCenter = card.offsetLeft + card.offsetWidth / 2;
-    const dist = Math.abs(cardCenter - center);
+    const rawDist = cardCenter - center;
+    const d = rawDist / card.offsetWidth;
+    const absD = Math.min(Math.abs(d), 3);
+
+    const rotate = Math.max(-42, Math.min(42, d * -34));
+    const scale = 1 - Math.min(absD * 0.14, 0.42);
+    const translateY = Math.min(absD * 16, 46);
+    const translateZ = -Math.min(absD * 60, 160);
+    const opacity = 1 - Math.min(absD * 0.2, 0.6);
+
+    card.style.transform = `translateY(${translateY}px) translateZ(${translateZ}px) rotateY(${rotate}deg) scale(${scale})`;
+    card.style.opacity = String(opacity);
+    card.style.zIndex = String(100 - Math.round(absD * 10));
+
+    const dist = Math.abs(rawDist);
     if(dist < closestDist){ closestDist = dist; closest = i; }
   });
-  gateActiveIndex = closest;
+
+  gateCards.forEach((card, i) => card.classList.toggle('active', i === closest));
+
+  if(closest !== gateActiveIndex){
+    gateActiveIndex = closest;
+    updateGateBackground();
+  }
   syncGateUI();
 }
 
 let gateScrollRaf;
 gateCarousel.addEventListener('scroll', () => {
   cancelAnimationFrame(gateScrollRaf);
-  gateScrollRaf = requestAnimationFrame(updateActiveFromScroll);
+  gateScrollRaf = requestAnimationFrame(updateCarouselTransforms);
 });
 
 function scrollGateTo(i){
@@ -175,7 +210,8 @@ gateEnterBtn.addEventListener('click', () => {
 showMusicGate();
 if(!gate.hidden){
   gateCards[0].scrollIntoView({ inline: 'center', block: 'nearest' });
-  syncGateUI();
+  updateGateBackground();
+  updateCarouselTransforms();
 }
 
 /* project gallery: hover-autoplay video, lightbox */
