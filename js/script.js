@@ -29,6 +29,16 @@ const tlObserver = new IntersectionObserver((entries) => {
 
 document.querySelectorAll('.tl-item').forEach(item => tlObserver.observe(item));
 
+/* blog accordion */
+document.querySelectorAll('.blog-row').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const item = btn.closest('.blog-item');
+    const wasOpen = item.classList.contains('open');
+    document.querySelectorAll('.blog-item.open').forEach(open => open.classList.remove('open'));
+    if(!wasOpen) item.classList.add('open');
+  });
+});
+
 /* music gate — triggers only the first time About is opened this session */
 const gate = document.getElementById('music-gate');
 const audio = document.getElementById('bg-audio');

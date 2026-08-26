@@ -174,8 +174,9 @@ h1 em{font-style:italic; color:var(--muted);}
 
 .hero-palette{
   position:absolute;
-  top:20px;
-  right:24px;
+  top:16px;
+  right:16px;
+  z-index:3;
   display:flex;
   gap:0;
   height:14px;
@@ -221,7 +222,8 @@ h1 em{font-style:italic; color:var(--muted);}
   position:relative;
   z-index:2;
   max-width:64%;
-  padding-top:36%;
+  padding-top:24%;
+  text-align:center;
 }
 .poster-name{
   position:relative;
@@ -254,7 +256,7 @@ h1 em{font-style:italic; color:var(--muted);}
   color:#3a3830;
   max-width:34ch;
   line-height:1.6;
-  margin-top:10px;
+  margin:10px auto 0;
   position:relative;
   z-index:2;
 }
@@ -262,7 +264,9 @@ h1 em{font-style:italic; color:var(--muted);}
 .poster-est{
   position:absolute;
   left:24px;
-  bottom:76px;
+  width:64%;
+  bottom:100px;
+  text-align:center;
   font-family:var(--mono);
   font-size:10.5px;
   letter-spacing:0.1em;
@@ -272,9 +276,9 @@ h1 em{font-style:italic; color:var(--muted);}
 .poster-quote{
   position:absolute;
   left:24px;
-  right:24px;
-  bottom:16px;
-  text-align:left;
+  width:64%;
+  bottom:40px;
+  text-align:center;
 }
 .poster-quote p{
   font-family:Arial, Helvetica, sans-serif;
@@ -298,9 +302,9 @@ h1 em{font-style:italic; color:var(--muted);}
   .poster-emblem{top:16px; left:12px; padding:7px 5px;}
   .poster-emblem span{font-size:9px;}
   .poster-corner-left{top:100px; left:12px;}
-  .hero-palette{top:20px; right:12px; width:90px; height:11px;}
-  .poster-quote{position:relative; bottom:auto; margin-top:40px; text-align:left;}
-  .poster-est{position:relative; left:auto; bottom:auto; margin-top:12px; display:block;}
+  .hero-palette{top:16px; right:12px; width:90px; height:11px;}
+  .poster-quote{position:relative; left:auto; width:auto; bottom:auto; margin-top:40px; text-align:center;}
+  .poster-est{position:relative; left:auto; width:auto; bottom:auto; margin-top:12px; display:block; text-align:center;}
 }
 
 .timeline{
@@ -341,7 +345,20 @@ h1 em{font-style:italic; color:var(--muted);}
   color:var(--accent);
   margin-bottom:8px;
 }
+.tl-age:empty{
+  display:inline-block;
+  width:64px;
+  height:15px;
+  border-bottom:1px dashed var(--muted);
+}
 .tl-body{font-size:19px; line-height:1.5; color:var(--text); max-width:46ch; min-height:1.4em;}
+.tl-body:empty{
+  display:block;
+  width:100%;
+  max-width:320px;
+  height:19px;
+  border-bottom:1px dashed var(--muted);
+}
 
 section{margin-top:80px;}
 .section-title{
@@ -399,6 +416,38 @@ section{margin-top:80px;}
 }
 .row:hover .row-title{color:var(--muted);}
 .row:hover .row-title .arrow{color:var(--accent);}
+
+/* blog accordion */
+.blog-row{
+  width:100%;
+  background:none;
+  border:none;
+  font:inherit;
+  cursor:pointer;
+  text-align:left;
+}
+.blog-toggle{
+  font-family:var(--mono);
+  font-size:14px;
+  color:var(--accent);
+  margin-left:12px;
+  transition:transform 0.3s var(--ease);
+}
+.blog-item.open .blog-toggle{transform:rotate(45deg);}
+.blog-drop{
+  max-height:0;
+  overflow:hidden;
+  transition:max-height 0.4s var(--ease);
+}
+.blog-item.open .blog-drop{max-height:300px;}
+.blog-drop-placeholder{
+  font-size:13px;
+  font-style:italic;
+  color:var(--muted);
+  border:1px dashed var(--line);
+  padding:16px;
+  margin:14px 0 8px;
+}
 
 /* projects gallery — alternating left/right rows, expanding hover */
 .gallery{
