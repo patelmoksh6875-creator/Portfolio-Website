@@ -5,14 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>moksh patel — portfolio</title>
 <link rel="stylesheet" href="css/style.css">
-<script type="importmap">
-{
-  "imports": {
-    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
-  }
-}
-</script>
 </head>
 <body>
 
@@ -65,8 +57,9 @@
 
   <!-- HOME -->
   <div class="page active" id="page-home">
-    <section class="panel hero-panel">
-      <div class="hero-ascii ascii-hero-stage"><canvas></canvas></div>
+    <section class="panel hero-panel" id="hero-panel">
+      <canvas class="hero-photo" id="hero-photo"></canvas>
+      <div class="hero-glass-grid" id="hero-glass-grid"></div>
       <div class="wrap">
         <div class="home-hero">
           <h1 class="brand-name">MOKSH PATEL</h1>
@@ -262,7 +255,7 @@
 </footer>
 
 <script src="js/script.js"></script>
-<script type="module" src="js/ascii-hero.js"></script>
+<script src="js/hero-photo.js"></script>
 
 </body>
 </html>
