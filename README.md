@@ -5,7 +5,7 @@ Static site, no build step or framework — plain HTML/CSS/JS.
 ## Structure
 - `index.html` — all four pages live in one file as `.page` divs, toggled by `showPage()` in `js/script.js`. Not real routing (no separate URLs per page yet). A `#music-gate` overlay, `<audio>` element, `#mini-player`, and `#lightbox` all sit outside the `.page` divs so they persist across page switches.
 - `css/style.css` — all styles. Color/font values are set as CSS variables at the top of the file (`:root`).
-- `js/script.js` — page switching (cross-fade via keyframes), scroll-reveal (`IntersectionObserver`) for the timeline, the music-gate logic (About-triggered gate, mini player, melt transition), and the project gallery's hover-video + lightbox behavior.
+- `js/script.js` — page switching (cross-fade via keyframes), scroll-reveal (`IntersectionObserver`) for the timeline, the music-gate carousel (preview/select/enter, mini player, melt transition), the blog accordion, and the project gallery's hover-video + lightbox behavior.
 
 ## Home hero
 - Poster-style layout (`.poster-hero`/`.poster-*` in `css/style.css`): beige background, a bordered vertical-letter emblem (`.poster-emblem`) top-left spelling out "MOKSH" top-to-bottom, a `(2026) ▼` marker rotated below it, and `.hero-palette` positioned in the far top-right corner of the full hero panel (a direct child of `.hero-panel`, not nested in `.poster-wrap`, so it sits at the true page edge independent of the centered content column).
@@ -20,22 +20,24 @@ Static site, no build step or framework — plain HTML/CSS/JS.
 - The timeline no longer has its vertical connector line (`.timeline::before` was removed). The empty `.tl-age`/`.tl-body` divs now show a dashed underline placeholder via the `:empty` CSS pseudo-class — it's purely visual and disappears automatically the moment you type real content into them, so there's nothing to manually remove later.
 
 ## Music gate
-- Shows the first time About is opened in a session (not on initial site load) — see `maybeShowMusicGate()` in `js/script.js`. Once a track is chosen or skipped, `sessionStorage['gate-decided']` is set and the gate won't reappear for the rest of the session, even if you navigate away from About and back.
-- Choosing a track "melts" the gate away (blur + scale + fade), and a glassmorphic mini player appears bottom-right and stays visible across all pages while music plays.
-- Track `src` values are dummy placeholders (`/audio/track-1.mp3`, etc.) — drop real files at those paths, no JS changes needed.
+- Now a full pre-page shown before the site itself, on first visit each session (not tied to any specific page) — see `showMusicGate()` in `js/script.js`, called once at script load. Once a track is chosen or skipped, `sessionStorage['gate-decided']` is set and the gate won't reappear for the rest of the session.
+- Style: a blurred warm-gradient background (`.gate-bg`, pure CSS radial-gradients — no image needed), a horizontal scroll-snap carousel of frosted-glass cards (`.gate-card`, `backdrop-filter` not needed since the art tile itself is opaque, but the play button and pill player both use real glass blur), and a glass pill player bar at the bottom (prev/play-pause/next, track info, and an "enter →" button) — modeled on a Spotify-style carousel screenshot, but built with placeholder gradient "artwork" tiles and no Spotify branding, real artist photos, or real album art, since those are trademarked/copyrighted.
+- **Preview vs. select is intentionally separate**: each card's own ▶ button (or the pill bar's play/pause) previews that track through the shared `<audio>` element without committing to anything. Clicking "enter →" commits whichever track is currently centered — if it's already previewing, playback continues seamlessly into the mini player; if not, it starts fresh. `enter without sound` (the small link at the bottom) skips music entirely.
+- The carousel is native horizontal scroll with `scroll-snap-align:center` — no drag/swipe JS needed, works with trackpad, touch, or arrow-button clicks (`#gate-prev`/`#gate-next`, which call `scrollIntoView`). A scroll listener (`updateActiveFromScroll`) tracks which card is nearest center and keeps the `.active` state, the pill bar's title/artist, and both play/pause icons in sync.
+- Placeholder audio paths are `assets/audio/track-1.mp3` through `track-4.mp3` — see `assets/audio/README.md` for exact filenames to drop in. Each card's `.gate-art` is a plain CSS gradient placeholder (`style="background:linear-gradient(...)"` inline on the element) — swap each for a real `<img>` once artwork is ready, same pattern as the placeholder image galleries elsewhere on the site.
 
 ## Blog page
 - Each post row is now a `.blog-item` wrapping a `<button class="blog-row">` (the clickable title row) and a `.blog-drop` panel that expands/collapses via a `max-height` transition when clicked (see the "blog accordion" block in `js/script.js`). Only one post stays open at a time — opening one closes any other.
 - `.blog-drop-placeholder` inside each is dashed-bordered placeholder text ("add your article here...") — replace that `<p>` with the real post content (plain HTML is fine) when you're ready to write.
 
 ## About page
-- `#page-about` is currently an empty `.page` div — everything that used to live there (3D discipline scenes, process steps, example galleries) was intentionally deleted to rebuild from scratch. The music gate above it is untouched and still triggers normally when About is opened.
+- `#page-about` is currently an empty `.page` div — everything that used to live there (3D discipline scenes, process steps, example galleries) was intentionally deleted to rebuild from scratch. It's a normal page now, unrelated to the music gate (which triggers on site load, not on opening About).
 
 ## Known placeholders to fill in
 - `.home-bio` — the "about me" paragraph on the home page has `[age]` and `[location]` placeholder text to replace with real details.
 - Timeline `.tl-age` / `.tl-body` — four empty entries in the home page timeline panel, waiting on real ages + milestones.
 - Contact page — email, X/Twitter, GitHub are placeholder values.
-- Music gate tracks — real audio files, see `js/script.js` for the `data-src` paths to replace.
+- Music gate tracks — real audio files + artwork, see `assets/audio/README.md` for exact filenames and what to swap in `index.html`.
 - Projects gallery images/video — placeholders in `assets/projects/`, see `assets/projects/README.md` for exact filenames to drop in.
 
 ## Running locally

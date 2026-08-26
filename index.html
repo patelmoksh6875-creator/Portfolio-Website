@@ -9,28 +9,55 @@
 <body>
 
 <div id="music-gate" hidden>
-  <div class="gate-inner">
-    <div class="gate-eyebrow">choose a track to enter</div>
-    <div class="gate-list">
-      <button class="gate-track" data-src="/audio/track-1.mp3" data-title="midnight drive">
-        <span class="gate-track-num">01</span>
-        <span class="gate-track-title">midnight drive</span>
-      </button>
-      <button class="gate-track" data-src="/audio/track-2.mp3" data-title="slow static">
-        <span class="gate-track-num">02</span>
-        <span class="gate-track-title">slow static</span>
-      </button>
-      <button class="gate-track" data-src="/audio/track-3.mp3" data-title="glass hallway">
-        <span class="gate-track-num">03</span>
-        <span class="gate-track-title">glass hallway</span>
-      </button>
-      <button class="gate-track" data-src="/audio/track-4.mp3" data-title="no signal">
-        <span class="gate-track-num">04</span>
-        <span class="gate-track-title">no signal</span>
-      </button>
+  <div class="gate-bg"></div>
+
+  <div class="gate-content">
+    <div class="gate-mark">♪ choose a track</div>
+
+    <div class="gate-carousel" id="gate-carousel">
+      <div class="gate-card" data-src="assets/audio/track-1.mp3" data-title="midnight drive" data-artist="ambient · loop">
+        <div class="gate-art" style="background:linear-gradient(150deg,#4a4a6e,#1a1a2e)">
+          <button class="gate-play" type="button" aria-label="preview midnight drive">▶</button>
+        </div>
+        <div class="gate-card-title">midnight drive</div>
+        <div class="gate-card-artist">ambient · loop</div>
+      </div>
+      <div class="gate-card" data-src="assets/audio/track-2.mp3" data-title="slow static" data-artist="lo-fi · loop">
+        <div class="gate-art" style="background:linear-gradient(150deg,#6e5a3a,#2a1a10)">
+          <button class="gate-play" type="button" aria-label="preview slow static">▶</button>
+        </div>
+        <div class="gate-card-title">slow static</div>
+        <div class="gate-card-artist">lo-fi · loop</div>
+      </div>
+      <div class="gate-card" data-src="assets/audio/track-3.mp3" data-title="glass hallway" data-artist="ambient · loop">
+        <div class="gate-art" style="background:linear-gradient(150deg,#3a6e64,#101f1e)">
+          <button class="gate-play" type="button" aria-label="preview glass hallway">▶</button>
+        </div>
+        <div class="gate-card-title">glass hallway</div>
+        <div class="gate-card-artist">ambient · loop</div>
+      </div>
+      <div class="gate-card" data-src="assets/audio/track-4.mp3" data-title="no signal" data-artist="downtempo · loop">
+        <div class="gate-art" style="background:linear-gradient(150deg,#6e3a52,#1f0f18)">
+          <button class="gate-play" type="button" aria-label="preview no signal">▶</button>
+        </div>
+        <div class="gate-card-title">no signal</div>
+        <div class="gate-card-artist">downtempo · loop</div>
+      </div>
     </div>
-    <div class="gate-hint">or continue without sound</div>
-    <button class="gate-skip" id="gate-skip">enter silently →</button>
+
+    <div class="gate-player">
+      <button class="gate-player-btn" id="gate-prev" type="button" aria-label="previous track">⏮</button>
+      <button class="gate-player-btn gate-player-play" id="gate-preview-toggle" type="button" aria-label="play or pause preview">▶</button>
+      <button class="gate-player-btn" id="gate-next" type="button" aria-label="next track">⏭</button>
+      <div class="gate-player-info">
+        <div class="gate-player-title" id="gate-player-title">midnight drive</div>
+        <div class="gate-player-artist" id="gate-player-artist">ambient · loop</div>
+      </div>
+      <button class="gate-enter" id="gate-enter" type="button">enter →</button>
+    </div>
+
+    <div class="gate-hint">tap ▶ to preview a track, then enter to continue</div>
+    <button class="gate-skip" id="gate-skip" type="button">or enter without sound</button>
   </div>
 </div>
 

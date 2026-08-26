@@ -17,8 +17,6 @@ function showPage(id){
   next.classList.add('active');
   window.scrollTo(0,0);
   window.dispatchEvent(new Event('resize'));
-
-  if(id === 'about' && typeof maybeShowMusicGate === 'function') maybeShowMusicGate();
 }
 
 const tlObserver = new IntersectionObserver((entries) => {
@@ -39,7 +37,7 @@ document.querySelectorAll('.blog-row').forEach(btn => {
   });
 });
 
-/* music gate — triggers only the first time About is opened this session */
+/* music gate — pre-page shown before the site on first visit this session */
 const gate = document.getElementById('music-gate');
 const audio = document.getElementById('bg-audio');
 const skipBtn = document.getElementById('gate-skip');
@@ -47,7 +45,7 @@ const miniPlayer = document.getElementById('mini-player');
 const miniToggle = document.getElementById('mini-player-toggle');
 const miniTitle = document.getElementById('mini-player-title');
 
-function maybeShowMusicGate(){
+function showMusicGate(){
   if(sessionStorage.getItem('gate-decided') === '1') return;
   gate.hidden = false;
   gate.classList.add('fading');
@@ -69,23 +67,7 @@ function showMiniPlayer(title){
   requestAnimationFrame(() => miniPlayer.classList.add('showing'));
 }
 
-function enterSite(src, title){
-  if(src){
-    audio.src = src;
-    audio.volume = 0.6;
-    audio.play().catch(() => {});
-    showMiniPlayer(title);
-  }
-  closeGate();
-}
-
-document.querySelectorAll('.gate-track').forEach(btn => {
-  btn.addEventListener('click', () => {
-    enterSite(btn.dataset.src, btn.dataset.title);
-  });
-});
-
-skipBtn.addEventListener('click', () => enterSite(null, null));
+skipBtn.addEventListener('click', () => closeGate());
 
 miniToggle.addEventListener('click', () => {
   if(audio.paused){
@@ -96,6 +78,105 @@ miniToggle.addEventListener('click', () => {
     miniToggle.textContent = '▶';
   }
 });
+
+/* gate carousel: preview tracks, pick one, enter the site */
+const gateCarousel = document.getElementById('gate-carousel');
+const gateCards = Array.from(document.querySelectorAll('.gate-card'));
+const gatePreviewToggle = document.getElementById('gate-preview-toggle');
+const gatePlayerTitle = document.getElementById('gate-player-title');
+const gatePlayerArtist = document.getElementById('gate-player-artist');
+const gatePrevBtn = document.getElementById('gate-prev');
+const gateNextBtn = document.getElementById('gate-next');
+const gateEnterBtn = document.getElementById('gate-enter');
+
+let gateActiveIndex = 0;
+
+function isPreviewingCard(card){
+  return !audio.paused && audio.currentSrc && audio.currentSrc.endsWith(card.dataset.src);
+}
+
+function syncGateUI(){
+  gateCards.forEach((card, i) => {
+    card.classList.toggle('active', i === gateActiveIndex);
+    card.querySelector('.gate-play').textContent = isPreviewingCard(card) ? '❚❚' : '▶';
+  });
+  const active = gateCards[gateActiveIndex];
+  gatePlayerTitle.textContent = active.dataset.title;
+  gatePlayerArtist.textContent = active.dataset.artist;
+  gatePreviewToggle.textContent = isPreviewingCard(active) ? '❚❚' : '▶';
+}
+
+function updateActiveFromScroll(){
+  const center = gateCarousel.scrollLeft + gateCarousel.clientWidth / 2;
+  let closest = 0;
+  let closestDist = Infinity;
+  gateCards.forEach((card, i) => {
+    const cardCenter = card.offsetLeft + card.offsetWidth / 2;
+    const dist = Math.abs(cardCenter - center);
+    if(dist < closestDist){ closestDist = dist; closest = i; }
+  });
+  gateActiveIndex = closest;
+  syncGateUI();
+}
+
+let gateScrollRaf;
+gateCarousel.addEventListener('scroll', () => {
+  cancelAnimationFrame(gateScrollRaf);
+  gateScrollRaf = requestAnimationFrame(updateActiveFromScroll);
+});
+
+function scrollGateTo(i){
+  i = Math.max(0, Math.min(gateCards.length - 1, i));
+  gateCards[i].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+}
+
+gatePrevBtn.addEventListener('click', () => scrollGateTo(gateActiveIndex - 1));
+gateNextBtn.addEventListener('click', () => scrollGateTo(gateActiveIndex + 1));
+
+function togglePreview(card){
+  if(isPreviewingCard(card)){
+    audio.pause();
+  } else {
+    audio.src = card.dataset.src;
+    audio.currentTime = 0;
+    audio.volume = 0.6;
+    audio.loop = true;
+    audio.play().catch(() => {});
+  }
+  syncGateUI();
+}
+
+gateCards.forEach((card, i) => {
+  card.querySelector('.gate-play').addEventListener('click', (e) => {
+    e.stopPropagation();
+    if(i !== gateActiveIndex) scrollGateTo(i);
+    togglePreview(card);
+  });
+  card.addEventListener('click', () => {
+    if(i !== gateActiveIndex) scrollGateTo(i);
+  });
+});
+
+gatePreviewToggle.addEventListener('click', () => togglePreview(gateCards[gateActiveIndex]));
+
+gateEnterBtn.addEventListener('click', () => {
+  const card = gateCards[gateActiveIndex];
+  if(!isPreviewingCard(card)){
+    audio.src = card.dataset.src;
+    audio.currentTime = 0;
+    audio.volume = 0.6;
+    audio.loop = true;
+    audio.play().catch(() => {});
+  }
+  showMiniPlayer(card.dataset.title);
+  closeGate();
+});
+
+showMusicGate();
+if(!gate.hidden){
+  gateCards[0].scrollIntoView({ inline: 'center', block: 'nearest' });
+  syncGateUI();
+}
 
 /* project gallery: hover-autoplay video, lightbox */
 document.querySelectorAll('.piece-media-video video').forEach(video => {
