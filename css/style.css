@@ -100,11 +100,12 @@ main{flex:1 0 auto; position:relative;}
 }
 .hero-panel .wrap{position:relative; z-index:2;}
 .timeline-panel{
-  background:linear-gradient(180deg, var(--sage-bg) 0%, var(--bg) 42%, var(--bg) 100%);
+  background:var(--bg);
   color:var(--text);
   min-height:100vh;
   display:flex;
   align-items:center;
+  padding:100px 0;
 }
 
 .eyebrow{
@@ -166,13 +167,13 @@ h1 em{font-style:italic; color:var(--muted);}
   left:24px;
   writing-mode:vertical-rl;
   transform:rotate(180deg);
-  top:20px;
+  top:132px;
 }
 .poster-arrow{font-size:9px;}
 
 .hero-palette{
   position:absolute;
-  top:0;
+  top:20px;
   right:24px;
   display:flex;
   gap:0;
@@ -184,8 +185,8 @@ h1 em{font-style:italic; color:var(--muted);}
 
 .poster-emblem{
   position:absolute;
-  top:26px;
-  right:24px;
+  top:16px;
+  left:24px;
   display:flex;
   flex-direction:column;
   align-items:center;
@@ -260,7 +261,7 @@ h1 em{font-style:italic; color:var(--muted);}
 .poster-est{
   position:absolute;
   left:24px;
-  bottom:56px;
+  bottom:76px;
   font-family:var(--mono);
   font-size:10.5px;
   letter-spacing:0.1em;
@@ -272,7 +273,7 @@ h1 em{font-style:italic; color:var(--muted);}
   left:24px;
   right:24px;
   bottom:16px;
-  text-align:center;
+  text-align:left;
 }
 .poster-quote p{
   font-family:Arial, Helvetica, sans-serif;
@@ -293,9 +294,10 @@ h1 em{font-style:italic; color:var(--muted);}
   }
   .poster-main{max-width:100%; padding-top:0;}
   .poster-name{font-size:38px;}
-  .hero-palette{top:0; right:12px; width:90px; height:11px;}
-  .poster-emblem{top:20px; right:12px; padding:7px 5px;}
+  .poster-emblem{top:16px; left:12px; padding:7px 5px;}
   .poster-emblem span{font-size:9px;}
+  .poster-corner-left{top:100px; left:12px;}
+  .hero-palette{top:20px; right:12px; width:90px; height:11px;}
   .poster-quote{position:relative; bottom:auto; margin-top:40px; text-align:left;}
   .poster-est{position:relative; left:auto; bottom:auto; margin-top:12px; display:block;}
 }
@@ -306,15 +308,6 @@ h1 em{font-style:italic; color:var(--muted);}
   flex-direction:column;
   gap:64px;
   padding:24px 0;
-}
-.timeline::before{
-  content:'';
-  position:absolute;
-  left:8px;
-  top:10px;
-  bottom:10px;
-  width:2px;
-  background:var(--line);
 }
 .tl-item{
   display:flex;
@@ -357,6 +350,14 @@ section{margin-top:80px;}
   color:var(--accent);
   text-transform:lowercase;
   margin-bottom:28px;
+}
+.section-title.timeline-title{margin-top:96px;}
+
+.home-bio{
+  font-size:15px;
+  line-height:1.85;
+  color:var(--text);
+  max-width:58ch;
 }
 
 /* list rows used for projects / writing / work */
