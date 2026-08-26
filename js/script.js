@@ -16,7 +16,6 @@ function showPage(id){
   void next.offsetWidth;
   next.classList.add('active');
   window.scrollTo(0,0);
-  document.documentElement.classList.toggle('about-page-active', id === 'about');
   window.dispatchEvent(new Event('resize'));
 
   if(id === 'about' && typeof maybeShowMusicGate === 'function') maybeShowMusicGate();
@@ -29,24 +28,6 @@ const tlObserver = new IntersectionObserver((entries) => {
 }, { threshold: 0.3 });
 
 document.querySelectorAll('.tl-item').forEach(item => tlObserver.observe(item));
-
-const stepObserver = new IntersectionObserver((entries) => {
-  entries.forEach((entry, i) => {
-    if(entry.isIntersecting){
-      setTimeout(() => entry.target.classList.add('in-view'), i * 60);
-    }
-  });
-}, { threshold: 0.25 });
-
-document.querySelectorAll('.process-step').forEach(item => stepObserver.observe(item));
-
-const pieceObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if(entry.isIntersecting) entry.target.classList.add('in-view');
-  });
-}, { threshold: 0.15 });
-
-document.querySelectorAll('.disc-gallery .piece').forEach(item => pieceObserver.observe(item));
 
 /* music gate — triggers only the first time About is opened this session */
 const gate = document.getElementById('music-gate');
@@ -69,13 +50,6 @@ function closeGate(){
   gate.classList.add('fading');
   setTimeout(() => { gate.hidden = true; }, 700);
   sessionStorage.setItem('gate-decided', '1');
-
-  const heroCopy = document.querySelector('.about-hero-copy');
-  if(heroCopy){
-    heroCopy.classList.remove('reveal');
-    void heroCopy.offsetWidth;
-    heroCopy.classList.add('reveal');
-  }
 }
 
 function showMiniPlayer(title){

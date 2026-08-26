@@ -101,7 +101,7 @@ main{flex:1 0 auto; position:relative;}
   position:absolute;
   inset:0;
   z-index:0;
-  pointer-events:none;
+  opacity:0.5;
 }
 .hero-ascii canvas{width:100% !important; height:100% !important; display:block;}
 .hero-panel .wrap{position:relative; z-index:1;}
@@ -152,18 +152,19 @@ h1 em{font-style:italic; color:var(--muted);}
   text-align:center;
 }
 .brand-name{
+  position:relative;
+  z-index:1;
   font-family:Arial, Helvetica, sans-serif;
   font-weight:900;
   font-size:44px;
   letter-spacing:0.01em;
   text-transform:uppercase;
-  color:#f6f1e4;
-  text-shadow:0 2px 24px rgba(0,0,0,0.45);
+  color:var(--sage-text);
   margin:0;
 }
 .brand-tag{
-  color:#e8e2d0;
-  text-shadow:0 1px 12px rgba(0,0,0,0.4);
+  position:relative;
+  z-index:1;
   font-family:Arial, Helvetica, sans-serif;
   font-size:11px;
   letter-spacing:0.18em;
@@ -439,122 +440,7 @@ footer{
   width:100%;
 }
 
-/* about page — same black/beige palette as the rest of the site */
-.about-inner{padding:0 0 100px;}
-
-html.about-page-active{scroll-snap-type:y mandatory;}
-.about-hero{
-  position:relative;
-  min-height:100vh;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  overflow:hidden;
-  scroll-snap-align:start;
-  scroll-snap-stop:always;
-}
-.about-hero .hero-ascii{position:absolute; inset:0; z-index:0; pointer-events:none;}
-.about-hero-copy{position:relative; z-index:1; text-align:center;}
-.about-hero-copy.reveal{animation:hero-reveal 0.9s var(--ease);}
-@keyframes hero-reveal{
-  from{opacity:0; transform:scale(0.92) translateY(14px); filter:blur(6px);}
-  to{opacity:1; transform:scale(1) translateY(0); filter:blur(0);}
-}
-.about-hero-copy h1{
-  font-size:34px;
-  color:var(--text);
-  text-shadow:0 2px 24px rgba(0,0,0,0.5);
-}
-.about-hero-copy .eyebrow{color:var(--accent);}
-.scroll-cue{
-  font-family:var(--mono);
-  font-size:11px;
-  letter-spacing:0.08em;
-  color:var(--muted);
-  margin-top:18px;
-  animation:scroll-cue-bob 1.8s var(--ease) infinite;
-}
-@keyframes scroll-cue-bob{
-  0%, 100%{transform:translateY(0); opacity:0.7;}
-  50%{transform:translateY(6px); opacity:1;}
-}
-
-/* discipline modules: 3d hero + process/gallery content, one pair per interest — accent stays the site's standard beige */
-
-.disc-hero{
-  position:relative;
-  min-height:100vh;
-  display:flex;
-  align-items:flex-end;
-  justify-content:center;
-  overflow:hidden;
-  scroll-snap-align:start;
-  scroll-snap-stop:always;
-  background:var(--bg);
-}
-.disc-stage{position:absolute; inset:0; z-index:0;}
-.disc-stage canvas{width:100% !important; height:100% !important; display:block;}
-.disc-hero-copy{
-  position:relative;
-  z-index:1;
-  text-align:center;
-  padding-bottom:72px;
-  opacity:0;
-}
-.disc-hero-copy.reveal{opacity:1; animation:hero-reveal 0.9s var(--ease);}
-.disc-hero-copy .eyebrow{color:var(--accent);}
-.disc-hero-copy h2{
-  font-family:var(--serif);
-  font-weight:400;
-  font-size:32px;
-  color:var(--text);
-  text-shadow:0 2px 30px rgba(0,0,0,0.6);
-}
-.disc-hero-copy .scroll-cue{color:var(--muted);}
-
-.disc-content{
-  min-height:100vh;
-  display:flex;
-  align-items:center;
-  padding:80px 0;
-  scroll-snap-align:start;
-  scroll-snap-stop:always;
-}
-
-.process-steps{
-  display:grid;
-  grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));
-  gap:28px;
-  margin-bottom:72px;
-}
-.process-step{
-  border-top:2px solid var(--accent);
-  padding-top:16px;
-  opacity:0;
-  transform:translateY(14px);
-  transition:opacity 0.6s var(--ease), transform 0.6s var(--ease);
-}
-.process-step.in-view{opacity:1; transform:translateY(0);}
-.process-step-num{
-  font-family:var(--mono);
-  font-size:12px;
-  color:var(--accent);
-  margin-bottom:8px;
-}
-.process-step-title{font-size:15px; font-weight:500; color:var(--text);}
-.process-step-desc{font-size:12.5px; color:var(--muted); margin-top:8px; line-height:1.6;}
-
-.disc-gallery{margin-top:32px; gap:56px;}
-.disc-gallery .piece{
-  opacity:0;
-  transform:translateY(20px);
-  transition:opacity 0.6s var(--ease), transform 0.6s var(--ease);
-}
-.disc-gallery .piece.in-view{opacity:1; transform:translateY(0);}
-
-@media(max-width:720px){
-  .disc-hero-copy h2{font-size:26px;}
-}
+/* about page — intentionally blank, rebuilding from scratch */
 
 /* music gate */
 #music-gate{
