@@ -132,16 +132,18 @@ function updateCarouselTransforms(){
     const d = rawDist / card.offsetWidth;
     const absD = Math.min(Math.abs(d), 3);
 
-    // how much of the natural scroll spacing to cancel out — ramps to
-    // "almost fully pulled behind center" by about 1.4 cards away
-    const pull = Math.min(absD / 1.4, 1);
-    const pulledX = rawDist * (1 - pull * 0.85);
+    // how much of the natural scroll spacing to cancel out — barely anything
+    // for the first card out (so it still arcs outward, visibly), then ramps
+    // up fast so it's mostly tucked behind the front card by ~2.5 cards away
+    const pullT = Math.min(absD / 2.5, 1);
+    const pull = Math.pow(pullT, 1.8);
+    const pulledX = rawDist * (1 - pull * 0.8);
 
-    const rotate = Math.max(-62, Math.min(62, d * -50));
-    const scale = 1 - Math.min(absD * 0.2, 0.55);
+    const rotate = Math.max(-58, Math.min(58, d * -42));
+    const scale = 1 - Math.min(absD * 0.16, 0.5);
     const translateY = Math.min(absD * 10, 28);
-    const translateZ = -Math.min(absD * 150, 420);
-    const opacity = 1 - Math.min(absD * 0.32, 0.9);
+    const translateZ = -Math.min(absD * 130, 400);
+    const opacity = 1 - Math.min(absD * 0.22, 0.88);
 
     card.style.transform = `translateX(${pulledX - rawDist}px) translateY(${translateY}px) translateZ(${translateZ}px) rotateY(${rotate}deg) scale(${scale})`;
     card.style.opacity = String(opacity);
