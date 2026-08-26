@@ -90,6 +90,7 @@ main{flex:1 0 auto; position:relative;}
 .panel{width:100%; padding:80px 0; box-sizing:border-box;}
 .hero-panel{
   position:relative;
+  margin-top:-1px;
   background:var(--sage-bg);
   color:var(--sage-text);
   min-height:100vh;
