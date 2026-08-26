@@ -8,9 +8,10 @@ Static site, no build step or framework — plain HTML/CSS/JS.
 - `js/script.js` — page switching (cross-fade via keyframes), scroll-reveal (`IntersectionObserver`) for the timeline, the music-gate logic (About-triggered gate, mini player, melt transition), and the project gallery's hover-video + lightbox behavior.
 
 ## Home hero
-- Poster-style layout (`.poster-hero`/`.poster-*` in `css/style.css`): beige background, `(2026) ▼` marker rotated top-left, a bordered vertical-letter emblem (`.poster-emblem`) top-right spelling out "MOKSH" top-to-bottom, an oversized bold name overlapping the left edge of the photo, a `|engineer|` tag, an italic one-line description, an `est. 2026` caption bottom-left, and a small italic quote bottom-center.
-- The header (`<header>`) is now beige (`var(--sage-bg)`) with dark text site-wide, instead of the old dark bar — so it blends seamlessly into the hero rather than reading as a separate band. A thin `.palette-strip` (a row of the site's core colors) runs across the very top of the page, above the header.
-- No canvas/JS involved — it's pure HTML/CSS, absolutely positioned within `.poster-wrap`. `assets/hero/mountain-blueprint.jpg` is sized larger than before and shifted left so the name text overlaps its edge (z-index puts the text on top). Stacks vertically on narrow screens (`max-width:720px`).
+- Poster-style layout (`.poster-hero`/`.poster-*` in `css/style.css`): beige background, `(2026) ▼` marker rotated top-left, a bordered vertical-letter emblem (`.poster-emblem`) top-right spelling out "MOKSH" top-to-bottom, an oversized bold name overlapping the photo's left edge, a `|engineer|` tag, an italic one-line description, an `est. 2026` caption bottom-left, and a small italic quote bottom-center.
+- `.hero-palette` (top-right, above the emblem) is a row of swatches whose `style="background:var(--...)"` attributes point directly at the site's `:root` custom properties — so it always reflects the live palette with zero maintenance. If you change a color in `:root`, this updates automatically; no hardcoded hex to keep in sync.
+- The header (`<header>`) is beige (`var(--sage-bg)`) with dark text site-wide, so it blends seamlessly into the hero instead of reading as a separate bar. The name has a soft multi-layer `text-shadow` in the hero's beige tone acting as a halo, so it stays fully legible wherever it crosses over the photo.
+- No canvas/JS involved — it's pure HTML/CSS, absolutely positioned within `.poster-wrap`. Stacks vertically on narrow screens (`max-width:720px`).
 - `assets/hero/_style-reference-not-used.jpg` is a saved design reference (not linked from any page) — safe to delete once you don't need it for comparison anymore.
 
 ## Music gate
