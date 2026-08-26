@@ -449,6 +449,32 @@ section{margin-top:80px;}
   margin:14px 0 8px;
 }
 
+/* brain dump — read-only stream, edited by hand in index.html only */
+.dump-list{
+  display:flex;
+  flex-direction:column;
+  gap:36px;
+  margin-top:44px;
+}
+.dump-entry{
+  border-left:2px solid var(--line);
+  padding-left:20px;
+}
+.dump-date{
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:0.06em;
+  text-transform:lowercase;
+  color:var(--accent);
+  margin-bottom:8px;
+}
+.dump-text{
+  font-size:14px;
+  line-height:1.7;
+  color:var(--text);
+  max-width:56ch;
+}
+
 /* projects gallery — alternating left/right rows, expanding hover */
 .gallery{
   display:flex;
@@ -694,7 +720,7 @@ footer{
   scroll-snap-type:x mandatory;
   padding:40px calc(50% - 95px) 20px;
   scrollbar-width:none;
-  perspective:1200px;
+  perspective:1500px;
 }
 .gate-carousel::-webkit-scrollbar{display:none;}
 

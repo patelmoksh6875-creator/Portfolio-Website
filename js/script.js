@@ -118,8 +118,9 @@ function syncGateUI(){
   gatePreviewToggle.textContent = isPreviewingCard(active) ? '❚❚' : '▶';
 }
 
-// coverflow: continuously rotate/scale/arc every card by its live distance
-// from the carousel's center, so passing cards visibly tuck behind the next one
+// real carousel: cards don't just shrink in place, they get pulled back toward
+// the center X position as they leave focus, so they visibly slide behind the
+// front card and disappear there instead of spreading out to the sides
 function updateCarouselTransforms(){
   const center = gateCarousel.scrollLeft + gateCarousel.clientWidth / 2;
   let closest = 0;
@@ -131,13 +132,18 @@ function updateCarouselTransforms(){
     const d = rawDist / card.offsetWidth;
     const absD = Math.min(Math.abs(d), 3);
 
-    const rotate = Math.max(-42, Math.min(42, d * -34));
-    const scale = 1 - Math.min(absD * 0.14, 0.42);
-    const translateY = Math.min(absD * 16, 46);
-    const translateZ = -Math.min(absD * 60, 160);
-    const opacity = 1 - Math.min(absD * 0.2, 0.6);
+    // how much of the natural scroll spacing to cancel out — ramps to
+    // "almost fully pulled behind center" by about 1.4 cards away
+    const pull = Math.min(absD / 1.4, 1);
+    const pulledX = rawDist * (1 - pull * 0.85);
 
-    card.style.transform = `translateY(${translateY}px) translateZ(${translateZ}px) rotateY(${rotate}deg) scale(${scale})`;
+    const rotate = Math.max(-62, Math.min(62, d * -50));
+    const scale = 1 - Math.min(absD * 0.2, 0.55);
+    const translateY = Math.min(absD * 10, 28);
+    const translateZ = -Math.min(absD * 150, 420);
+    const opacity = 1 - Math.min(absD * 0.32, 0.9);
+
+    card.style.transform = `translateX(${pulledX - rawDist}px) translateY(${translateY}px) translateZ(${translateZ}px) rotateY(${rotate}deg) scale(${scale})`;
     card.style.opacity = String(opacity);
     card.style.zIndex = String(100 - Math.round(absD * 10));
 
