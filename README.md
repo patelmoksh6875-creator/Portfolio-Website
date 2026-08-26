@@ -6,11 +6,11 @@ Static site, no build step or framework — plain HTML/CSS/JS.
 - `index.html` — all four pages live in one file as `.page` divs, toggled by `showPage()` in `js/script.js`. Not real routing (no separate URLs per page yet). A `#music-gate` overlay, `<audio>` element, `#mini-player`, and `#lightbox` all sit outside the `.page` divs so they persist across page switches.
 - `css/style.css` — all styles. Color/font values are set as CSS variables at the top of the file (`:root`).
 - `js/script.js` — page switching (cross-fade via keyframes), scroll-reveal (`IntersectionObserver`) for the timeline, the music-gate logic (About-triggered gate, mini player, melt transition), and the project gallery's hover-video + lightbox behavior.
-- `js/hero-photo.js` — plain JS (no Three.js, no build step) that draws `assets/hero/mountain-forest.jpg` onto the home hero's canvas with a subtle ordered (Bayer 4x4) dither pass, then procedurally generates a staggered grid of translucent "glass block" `<div>`s over it (`#hero-glass-grid`) — a stacked, staircasing overlay in the style of a museum-label/data-viz treatment, not a literal copy of any reference image.
 
 ## Home hero
-- Background is a real photo (`assets/hero/mountain-forest.jpg`), lightly dithered on a `<canvas>`, redrawn on resize. The glass-block overlay is regenerated from a fixed seed in `js/hero-photo.js`, so the layout is consistent across loads but easy to re-tune (tone list, column/row count, block density).
-- The name sits in its own small glass panel (`.home-hero`, `backdrop-filter: blur`) in black text so it stays legible over the busy photo regardless of what's beneath it.
+- Poster-style layout (`.poster-hero`/`.poster-*` in `css/style.css`): beige background, small rotated `(2026) ▼` marker top-left, `001 ▼` marker top-right, an oversized bold name with a hanging comma, a `|engineer|` tag, and an italic one-line description — with `assets/hero/mountain-blueprint.jpg` offset to the right, overlapping the name block, the way a poster's photo sits beside its headline.
+- No canvas/JS involved — it's pure HTML/CSS, absolutely positioned within `.poster-wrap`. Stacks vertically on narrow screens (`max-width:720px`) with the image moving into normal document flow below the text.
+- `assets/hero/_style-reference-not-used.jpg` is a saved design reference (not linked from any page) — safe to delete once you don't need it for comparison anymore.
 
 ## Music gate
 - Shows the first time About is opened in a session (not on initial site load) — see `maybeShowMusicGate()` in `js/script.js`. Once a track is chosen or skipped, `sessionStorage['gate-decided']` is set and the gate won't reappear for the rest of the session, even if you navigate away from About and back.
