@@ -42,8 +42,16 @@ const gate = document.getElementById('music-gate');
 const audio = document.getElementById('bg-audio');
 const skipBtn = document.getElementById('gate-skip');
 const miniPlayer = document.getElementById('mini-player');
+const miniPlayerPill = document.getElementById('mini-player-pill');
 const miniToggle = document.getElementById('mini-player-toggle');
 const miniTitle = document.getElementById('mini-player-title');
+const miniCollapse = document.getElementById('mini-collapse');
+const miniArtImg = document.getElementById('mini-art-img');
+const miniExpandedTitle = document.getElementById('mini-expanded-title');
+const miniExpandedArtist = document.getElementById('mini-expanded-artist');
+const miniPrevBtn = document.getElementById('mini-prev');
+const miniPlayBtn = document.getElementById('mini-play');
+const miniNextBtn = document.getElementById('mini-next');
 
 function showMusicGate(){
   if(sessionStorage.getItem('gate-decided') === '1') return;
@@ -60,24 +68,67 @@ function closeGate(){
   sessionStorage.setItem('gate-decided', '1');
 }
 
-function showMiniPlayer(title){
-  miniTitle.textContent = title;
-  miniToggle.textContent = '❚❚';
+/* mini player — pill by default, expands into a square now-playing panel
+   with its own prev/play/next so the track can be changed after entering */
+let currentTrackIndex = 0;
+
+function playTrackAtIndex(i, autoplay){
+  i = ((i % gateCards.length) + gateCards.length) % gateCards.length;
+  currentTrackIndex = i;
+  const card = gateCards[i];
+  audio.src = card.dataset.src;
+  audio.currentTime = 0;
+  audio.volume = 0.6;
+  audio.loop = true;
+  if(autoplay) audio.play().catch(() => {});
+  updateMiniPlayerInfo();
+}
+
+function updateMiniPlayerInfo(){
+  const card = gateCards[currentTrackIndex];
+  const img = card.querySelector('.gate-art img');
+  const playing = !audio.paused;
+  miniTitle.textContent = card.dataset.title;
+  miniArtImg.src = img ? img.getAttribute('src') : '';
+  miniArtImg.alt = card.dataset.title;
+  miniExpandedTitle.textContent = card.dataset.title;
+  miniExpandedArtist.textContent = card.dataset.artist;
+  miniToggle.textContent = playing ? '❚❚' : '▶';
+  miniPlayBtn.textContent = playing ? '❚❚' : '▶';
+}
+
+function showMiniPlayer(){
+  updateMiniPlayerInfo();
   miniPlayer.hidden = false;
   requestAnimationFrame(() => miniPlayer.classList.add('showing'));
 }
 
+function toggleMiniPlayback(){
+  if(audio.paused) audio.play().catch(() => {});
+  else audio.pause();
+  updateMiniPlayerInfo();
+}
+
 skipBtn.addEventListener('click', () => closeGate());
 
-miniToggle.addEventListener('click', () => {
-  if(audio.paused){
-    audio.play().catch(() => {});
-    miniToggle.textContent = '❚❚';
-  } else {
-    audio.pause();
-    miniToggle.textContent = '▶';
+miniPlayerPill.addEventListener('click', () => miniPlayer.classList.add('expanded'));
+miniCollapse.addEventListener('click', (e) => {
+  e.stopPropagation();
+  miniPlayer.classList.remove('expanded');
+});
+document.addEventListener('click', (e) => {
+  if(miniPlayer.classList.contains('expanded') && !miniPlayer.contains(e.target)){
+    miniPlayer.classList.remove('expanded');
   }
 });
+
+miniToggle.addEventListener('click', (e) => {
+  e.stopPropagation();
+  toggleMiniPlayback();
+});
+miniPlayBtn.addEventListener('click', toggleMiniPlayback);
+miniPrevBtn.addEventListener('click', () => playTrackAtIndex(currentTrackIndex - 1, true));
+miniNextBtn.addEventListener('click', () => playTrackAtIndex(currentTrackIndex + 1, true));
 
 /* gate carousel: preview tracks, pick one, enter the site */
 const gateCarousel = document.getElementById('gate-carousel');
@@ -149,9 +200,12 @@ function updateCarouselTransforms(){
     const translateZ = -Math.min(absD * 130, 400);
     const opacity = 1 - Math.min(absD * 0.22, 0.88);
 
-    card.style.transform = `translateX(${pulledX - rawDist}px) translateY(${translateY}px) translateZ(${translateZ}px) rotateY(${rotate}deg) scale(${scale})`;
-    card.style.opacity = String(opacity);
-    card.style.zIndex = String(100 - Math.round(absD * 10));
+    // transform/opacity go on the inner visual, never on .gate-card itself —
+    // that element carries scroll-snap-align and must stay untouched
+    const visual = card.querySelector('.gate-card-visual');
+    visual.style.transform = `translateX(${pulledX - rawDist}px) translateY(${translateY}px) translateZ(${translateZ}px) rotateY(${rotate}deg) scale(${scale})`;
+    visual.style.opacity = String(opacity);
+    visual.style.zIndex = String(100 - Math.round(absD * 10));
 
     const dist = Math.abs(rawDist);
     if(dist < closestDist){ closestDist = dist; closest = i; }
@@ -170,6 +224,20 @@ let gateScrollRaf;
 gateCarousel.addEventListener('scroll', () => {
   cancelAnimationFrame(gateScrollRaf);
   gateScrollRaf = requestAnimationFrame(updateCarouselTransforms);
+});
+
+// left/right arrow keys drive scrollGateTo directly rather than letting the
+// browser natively scroll the carousel by a small fixed step (which looked
+// choppy and didn't line up with card snap positions)
+document.addEventListener('keydown', (e) => {
+  if(gate.hidden) return;
+  if(e.key === 'ArrowRight'){
+    e.preventDefault();
+    scrollGateTo(gateActiveIndex + 1);
+  } else if(e.key === 'ArrowLeft'){
+    e.preventDefault();
+    scrollGateTo(gateActiveIndex - 1);
+  }
 });
 
 let gateSnapRestoreTimer;
@@ -228,14 +296,12 @@ gatePreviewToggle.addEventListener('click', () => togglePreview(gateCards[gateAc
 
 gateEnterBtn.addEventListener('click', () => {
   const card = gateCards[gateActiveIndex];
-  if(!isPreviewingCard(card)){
-    audio.src = card.dataset.src;
-    audio.currentTime = 0;
-    audio.volume = 0.6;
-    audio.loop = true;
-    audio.play().catch(() => {});
+  if(isPreviewingCard(card)){
+    currentTrackIndex = gateActiveIndex;
+  } else {
+    playTrackAtIndex(gateActiveIndex, true);
   }
-  showMiniPlayer(card.dataset.title);
+  showMiniPlayer();
   closeGate();
 });
 
