@@ -172,13 +172,29 @@ gateCarousel.addEventListener('scroll', () => {
   gateScrollRaf = requestAnimationFrame(updateCarouselTransforms);
 });
 
+function easeInOutQuad(t){ return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
+
+let gateTweenRaf;
+function animateScrollTo(target, duration){
+  cancelAnimationFrame(gateTweenRaf);
+  const start = gateCarousel.scrollLeft;
+  const delta = target - start;
+  const startTime = performance.now();
+  function step(now){
+    const t = Math.min((now - startTime) / duration, 1);
+    gateCarousel.scrollLeft = start + delta * easeInOutQuad(t);
+    if(t < 1) gateTweenRaf = requestAnimationFrame(step);
+  }
+  gateTweenRaf = requestAnimationFrame(step);
+}
+
 function scrollGateTo(i){
   i = Math.max(0, Math.min(gateCards.length - 1, i));
-  // scrollIntoView reads the transformed (coverflow) bounding box, which is
-  // wrong here — use the untransformed layout position instead
+  // native smooth scrollTo gets fought/killed by our per-frame transform
+  // updates below, so drive the scroll position ourselves instead
   const card = gateCards[i];
   const target = card.offsetLeft + card.offsetWidth / 2 - gateCarousel.clientWidth / 2;
-  gateCarousel.scrollTo({ left: target, behavior: 'smooth' });
+  animateScrollTo(target, 420);
 }
 
 gatePrevBtn.addEventListener('click', () => scrollGateTo(gateActiveIndex - 1));
