@@ -99,10 +99,14 @@ function isPreviewingCard(card){
 }
 
 function updateGateBackground(){
-  const art = gateCards[gateActiveIndex].querySelector('.gate-art');
+  const img = gateCards[gateActiveIndex].querySelector('.gate-art img');
   const nextLayer = gateBgFront === 'a' ? gateBgLayerB : gateBgLayerA;
   const prevLayer = gateBgFront === 'a' ? gateBgLayerA : gateBgLayerB;
-  nextLayer.style.background = art.style.background;
+  if(img){
+    nextLayer.style.backgroundImage = `url("${img.getAttribute('src')}")`;
+    nextLayer.style.backgroundSize = 'cover';
+    nextLayer.style.backgroundPosition = 'center';
+  }
   nextLayer.style.opacity = '1';
   prevLayer.style.opacity = '0';
   gateBgFront = gateBgFront === 'a' ? 'b' : 'a';
