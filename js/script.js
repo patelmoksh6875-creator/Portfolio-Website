@@ -381,9 +381,10 @@ if(aboutMixCards.length){
   });
 }
 
-/* about page — djing section: vinyl spins proportionally to scroll position,
-   only while the about page is the active one (avoids any cost elsewhere) */
-const aboutVinyl = document.getElementById('about-vinyl');
+/* about page — djing section: the CD turns in real 3D (rotateY, with the
+   .about-cd-wrap's CSS perspective giving it actual depth/foreshortening)
+   proportionally to scroll position, only while the about page is active */
+const aboutVinyl = document.getElementById('about-cd');
 
 function updateAboutVinylSpin(){
   if(!aboutVinyl) return;
@@ -392,7 +393,7 @@ function updateAboutVinylSpin(){
   const rect = aboutVinyl.getBoundingClientRect();
   const total = rect.height + window.innerHeight;
   const progress = Math.min(1, Math.max(0, (window.innerHeight - rect.top) / total));
-  aboutVinyl.style.transform = `rotate(${progress * 720}deg)`;
+  aboutVinyl.style.transform = `rotateY(${progress * 720}deg)`;
 }
 
 let aboutVinylRaf;
