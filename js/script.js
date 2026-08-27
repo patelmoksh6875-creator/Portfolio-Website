@@ -17,6 +17,7 @@ function showPage(id){
   next.classList.add('active');
   window.scrollTo(0,0);
   window.dispatchEvent(new Event('resize'));
+  if(id === 'about' && typeof updateAboutVinylSpin === 'function') updateAboutVinylSpin();
 }
 
 const tlObserver = new IntersectionObserver((entries) => {
@@ -352,3 +353,97 @@ lightboxBackdrop.addEventListener('click', closeLightbox);
 document.addEventListener('keydown', (e) => {
   if(e.key === 'Escape' && !lightbox.hidden) closeLightbox();
 });
+
+/* about page — djing section: sound effect placeholder */
+const sfxFiles = {}; // e.g. { hover: 'assets/about/sfx-hover.mp3', click: 'assets/about/sfx-click.mp3' }
+function playSfx(name){
+  const src = sfxFiles[name];
+  if(!src) return; // no file wired up yet — safe no-op
+  const s = new Audio(src);
+  s.volume = 0.4;
+  s.play().catch(() => {});
+}
+
+/* about page — djing section: track grid, built from the same gateCards
+   data the music gate uses, so there's a single source of truth */
+const aboutTrackGrid = document.getElementById('about-track-grid');
+
+function renderAboutTrackGrid(){
+  if(!aboutTrackGrid) return;
+  aboutTrackGrid.innerHTML = '';
+  gateCards.forEach((card, i) => {
+    const img = card.querySelector('.gate-art img');
+    const isPlaying = !audio.paused && audio.currentSrc && audio.currentSrc.endsWith(card.dataset.src);
+
+    const el = document.createElement('div');
+    el.className = 'about-track-card' + (isPlaying ? ' playing' : '');
+
+    const art = document.createElement('div');
+    art.className = 'about-track-art';
+    if(img){
+      const artImg = document.createElement('img');
+      artImg.src = img.getAttribute('src');
+      artImg.alt = card.dataset.title;
+      art.appendChild(artImg);
+    }
+
+    const info = document.createElement('div');
+    info.className = 'about-track-info';
+    info.innerHTML = `<div class="about-track-title">${card.dataset.title}</div><div class="about-track-artist">${card.dataset.artist || ''}</div>`;
+
+    const playBtn = document.createElement('button');
+    playBtn.className = 'about-track-play';
+    playBtn.type = 'button';
+    playBtn.setAttribute('aria-label', 'play ' + card.dataset.title);
+    playBtn.textContent = isPlaying ? '❚❚' : '▶';
+
+    el.appendChild(art);
+    el.appendChild(info);
+    el.appendChild(playBtn);
+
+    el.addEventListener('click', () => {
+      playSfx('click');
+      playTrackAtIndex(i, true);
+      showMiniPlayer();
+      renderAboutTrackGrid();
+    });
+    el.addEventListener('mouseenter', () => playSfx('hover'));
+
+    aboutTrackGrid.appendChild(el);
+  });
+
+  const aboutStepObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting) entry.target.classList.add('in-view');
+    });
+  }, { threshold: 0.2 });
+  aboutTrackGrid.querySelectorAll('.about-track-card').forEach(c => aboutStepObserver.observe(c));
+}
+
+if(aboutTrackGrid) renderAboutTrackGrid();
+
+// keep the about-page track grid's playing state in sync if the track
+// changes from elsewhere (mini player prev/next, the gate, etc.)
+audio.addEventListener('play', () => { if(aboutTrackGrid) renderAboutTrackGrid(); });
+audio.addEventListener('pause', () => { if(aboutTrackGrid) renderAboutTrackGrid(); });
+
+/* about page — djing section: vinyl spins proportionally to scroll position,
+   only while the about page is the active one (avoids any cost elsewhere) */
+const aboutVinyl = document.getElementById('about-vinyl');
+
+function updateAboutVinylSpin(){
+  if(!aboutVinyl) return;
+  const aboutPage = document.getElementById('page-about');
+  if(!aboutPage.classList.contains('active')) return;
+  const rect = aboutVinyl.getBoundingClientRect();
+  const total = rect.height + window.innerHeight;
+  const progress = Math.min(1, Math.max(0, (window.innerHeight - rect.top) / total));
+  aboutVinyl.style.transform = `rotate(${progress * 720}deg)`;
+}
+
+let aboutVinylRaf;
+window.addEventListener('scroll', () => {
+  cancelAnimationFrame(aboutVinylRaf);
+  aboutVinylRaf = requestAnimationFrame(updateAboutVinylSpin);
+});
+updateAboutVinylSpin();
