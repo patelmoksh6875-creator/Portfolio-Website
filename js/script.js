@@ -174,7 +174,11 @@ gateCarousel.addEventListener('scroll', () => {
 
 function scrollGateTo(i){
   i = Math.max(0, Math.min(gateCards.length - 1, i));
-  gateCards[i].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  // scrollIntoView reads the transformed (coverflow) bounding box, which is
+  // wrong here — use the untransformed layout position instead
+  const card = gateCards[i];
+  const target = card.offsetLeft + card.offsetWidth / 2 - gateCarousel.clientWidth / 2;
+  gateCarousel.scrollTo({ left: target, behavior: 'smooth' });
 }
 
 gatePrevBtn.addEventListener('click', () => scrollGateTo(gateActiveIndex - 1));
@@ -221,7 +225,7 @@ gateEnterBtn.addEventListener('click', () => {
 
 showMusicGate();
 if(!gate.hidden){
-  gateCards[0].scrollIntoView({ inline: 'center', block: 'nearest' });
+  gateCarousel.scrollLeft = gateCards[0].offsetLeft + gateCards[0].offsetWidth / 2 - gateCarousel.clientWidth / 2;
   updateGateBackground();
   updateCarouselTransforms();
 }
