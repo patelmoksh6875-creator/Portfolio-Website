@@ -180,10 +180,17 @@ function animateScrollTo(target, duration){
   const start = gateCarousel.scrollLeft;
   const delta = target - start;
   const startTime = performance.now();
+  // scroll-snap-type intercepts and snaps back any mid-flight scrollLeft
+  // assignment, which freezes this tween — disable it for the animation
+  gateCarousel.style.scrollSnapType = 'none';
   function step(now){
     const t = Math.min((now - startTime) / duration, 1);
     gateCarousel.scrollLeft = start + delta * easeInOutQuad(t);
-    if(t < 1) gateTweenRaf = requestAnimationFrame(step);
+    if(t < 1){
+      gateTweenRaf = requestAnimationFrame(step);
+    } else {
+      gateCarousel.style.scrollSnapType = '';
+    }
   }
   gateTweenRaf = requestAnimationFrame(step);
 }
