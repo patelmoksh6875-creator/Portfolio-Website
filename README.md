@@ -49,4 +49,6 @@ Static site, no build step or framework — plain HTML/CSS/JS.
 No build tools needed — open `index.html` directly in a browser, or serve the folder with any static server (e.g. `python3 -m http.server`) if you want `fetch`/relative paths to behave like production.
 
 ## Deploying
-Push to GitHub, then import the repo in Vercel as a static site — no framework preset needed.
+Live at **https://mokshpatel.vercel.app** — the Vercel project (`mokshpatel` in the `moksh-personal` team) is linked to this GitHub repo, so every push to `main` auto-deploys. Deployment protection (SSO gate) is disabled so the site is publicly viewable.
+
+`mokshpatel.xyz` is not connected — that needs an actual domain purchase through a registrar (not something done from here) and, once owned, adding it under the Vercel project's Settings → Domains and pointing its DNS at Vercel. `mokshpatel.vercel.app` was used as the fallback per your instructions.
