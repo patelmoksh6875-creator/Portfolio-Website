@@ -1126,59 +1126,68 @@ footer{
   border-bottom:1px solid var(--line);
 }
 
-.about-track-grid{
+/* about page — djing mix gallery */
+.about-mix-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));
-  gap:20px;
+  grid-template-columns:repeat(auto-fill, minmax(240px, 1fr));
+  gap:32px;
   margin-top:32px;
 }
-.about-track-card{
-  display:flex;
-  align-items:center;
-  gap:14px;
-  padding:12px;
-  border-radius:14px;
-  background:rgba(255,255,255,0.05);
-  backdrop-filter:blur(16px);
-  -webkit-backdrop-filter:blur(16px);
-  border:1px solid rgba(255,255,255,0.1);
+.about-mix-card{
   cursor:pointer;
   opacity:0;
   transform:translateY(16px);
-  transition:opacity 0.6s var(--ease), transform 0.6s var(--ease), background 0.2s var(--ease-fast), border-color 0.2s var(--ease-fast);
+  transition:opacity 0.6s var(--ease), transform 0.6s var(--ease);
 }
-.about-track-card.in-view{opacity:1; transform:translateY(0);}
-.about-track-card:hover{background:rgba(255,255,255,0.09); border-color:rgba(255,255,255,0.2);}
-.about-track-art{
+.about-mix-card.in-view{opacity:1; transform:translateY(0);}
+.about-mix-cover{
   position:relative;
-  width:52px;
-  height:52px;
-  border-radius:8px;
+  aspect-ratio:1/1;
+  border-radius:14px;
   overflow:hidden;
-  flex-shrink:0;
-  background:#111;
-}
-.about-track-art img{width:100%; height:100%; object-fit:cover; display:block;}
-.about-track-info{flex:1; min-width:0;}
-.about-track-title{font-size:13px; font-weight:600; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-.about-track-artist{font-size:11px; color:var(--muted); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-.about-track-play{
-  flex-shrink:0;
-  width:34px;
-  height:34px;
-  border-radius:50%;
-  background:rgba(255,255,255,0.1);
-  border:1px solid rgba(255,255,255,0.18);
-  color:#fff;
-  font-size:12px;
-  cursor:pointer;
+  background:rgba(255,255,255,0.05);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  border:1px dashed rgba(255,255,255,0.18);
   display:flex;
   align-items:center;
   justify-content:center;
-  transition:background 0.2s var(--ease-fast);
+  transition:border-color 0.3s var(--ease-fast), background 0.3s var(--ease-fast);
 }
-.about-track-play:hover{background:rgba(255,255,255,0.22);}
-.about-track-card.playing{border-color:rgba(255,255,255,0.4); background:rgba(255,255,255,0.1);}
+.about-mix-card:hover .about-mix-cover{border-color:rgba(255,255,255,0.4); background:rgba(255,255,255,0.08);}
+.about-mix-cover img{width:100%; height:100%; object-fit:cover; display:block; position:absolute; inset:0;}
+.about-mix-placeholder-label{
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:0.06em;
+  text-transform:lowercase;
+  color:var(--muted);
+}
+.about-mix-play{
+  position:absolute;
+  bottom:12px;
+  right:12px;
+  width:38px;
+  height:38px;
+  border-radius:50%;
+  background:rgba(255,255,255,0.1);
+  border:1px solid rgba(255,255,255,0.2);
+  color:#fff;
+  font-size:13px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:not-allowed;
+  opacity:0.5;
+}
+.about-mix-title{margin-top:14px; font-size:13.5px; font-weight:600; color:#fff;}
+.about-mix-meta{
+  font-family:var(--mono);
+  font-size:11px;
+  color:var(--muted);
+  margin-top:4px;
+  text-transform:lowercase;
+}
 
 @media(max-width:720px){
   .about-banner-title{font-size:48px;}
