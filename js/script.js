@@ -175,15 +175,19 @@ gateCarousel.addEventListener('scroll', () => {
 let gateSnapRestoreTimer;
 function animateScrollTo(target){
   // scroll-snap-type intercepts and snaps back any mid-flight scrollLeft
-  // assignment (breaks a manual rAF tween, and rAF itself can be throttled
-  // in a backgrounded tab) — disable snap and let the browser's own
-  // compositor-driven smooth scroll do the animating, then restore snap
+  // change, and both a manual rAF tween and the browser's native smooth
+  // scroll can stall depending on the environment — so jump the scroll
+  // position directly (always reliable) and let a temporary CSS transition
+  // on the cards animate the resulting coverflow change instead
   clearTimeout(gateSnapRestoreTimer);
+  gateCarousel.classList.add('snapping');
   gateCarousel.style.scrollSnapType = 'none';
-  gateCarousel.scrollTo({ left: target, behavior: 'smooth' });
+  gateCarousel.scrollLeft = target;
+  updateCarouselTransforms();
   gateSnapRestoreTimer = setTimeout(() => {
     gateCarousel.style.scrollSnapType = '';
-  }, 500);
+    gateCarousel.classList.remove('snapping');
+  }, 450);
 }
 
 function scrollGateTo(i){

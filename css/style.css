@@ -731,6 +731,9 @@ footer{
   transition:opacity 0.15s linear;
   will-change:transform;
 }
+.gate-carousel.snapping .gate-card{
+  transition:transform 0.42s var(--ease), opacity 0.3s var(--ease);
+}
 
 .gate-art{
   position:relative;
