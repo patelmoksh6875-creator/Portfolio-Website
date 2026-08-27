@@ -381,19 +381,23 @@ if(aboutMixCards.length){
   });
 }
 
-/* about page — djing section: the CD turns in real 3D (rotateY, with the
-   .about-cd-wrap's CSS perspective giving it actual depth/foreshortening)
-   proportionally to scroll position, only while the about page is active */
-const aboutVinyl = document.getElementById('about-cd');
+/* about page — every category's ".about-spin" element (the CD, the lens,
+   etc.) turns in real 3D (rotateY, with .about-spin-wrap's CSS perspective
+   giving it actual depth/foreshortening) proportionally to its own scroll
+   position, only while the about page is active. Class-based so any number
+   of categories can each have one without extra wiring. */
+const aboutSpinEls = document.querySelectorAll('.about-spin');
 
 function updateAboutVinylSpin(){
-  if(!aboutVinyl) return;
+  if(!aboutSpinEls.length) return;
   const aboutPage = document.getElementById('page-about');
   if(!aboutPage.classList.contains('active')) return;
-  const rect = aboutVinyl.getBoundingClientRect();
-  const total = rect.height + window.innerHeight;
-  const progress = Math.min(1, Math.max(0, (window.innerHeight - rect.top) / total));
-  aboutVinyl.style.transform = `rotateY(${progress * 720}deg)`;
+  aboutSpinEls.forEach(el => {
+    const rect = el.getBoundingClientRect();
+    const total = rect.height + window.innerHeight;
+    const progress = Math.min(1, Math.max(0, (window.innerHeight - rect.top) / total));
+    el.style.transform = `rotateY(${progress * 720}deg)`;
+  });
 }
 
 let aboutVinylRaf;
