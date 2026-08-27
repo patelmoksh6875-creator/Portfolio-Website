@@ -172,36 +172,25 @@ gateCarousel.addEventListener('scroll', () => {
   gateScrollRaf = requestAnimationFrame(updateCarouselTransforms);
 });
 
-function easeInOutQuad(t){ return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
-
-let gateTweenRaf;
-function animateScrollTo(target, duration){
-  cancelAnimationFrame(gateTweenRaf);
-  const start = gateCarousel.scrollLeft;
-  const delta = target - start;
-  const startTime = performance.now();
+let gateSnapRestoreTimer;
+function animateScrollTo(target){
   // scroll-snap-type intercepts and snaps back any mid-flight scrollLeft
-  // assignment, which freezes this tween — disable it for the animation
+  // assignment (breaks a manual rAF tween, and rAF itself can be throttled
+  // in a backgrounded tab) — disable snap and let the browser's own
+  // compositor-driven smooth scroll do the animating, then restore snap
+  clearTimeout(gateSnapRestoreTimer);
   gateCarousel.style.scrollSnapType = 'none';
-  function step(now){
-    const t = Math.min((now - startTime) / duration, 1);
-    gateCarousel.scrollLeft = start + delta * easeInOutQuad(t);
-    if(t < 1){
-      gateTweenRaf = requestAnimationFrame(step);
-    } else {
-      gateCarousel.style.scrollSnapType = '';
-    }
-  }
-  gateTweenRaf = requestAnimationFrame(step);
+  gateCarousel.scrollTo({ left: target, behavior: 'smooth' });
+  gateSnapRestoreTimer = setTimeout(() => {
+    gateCarousel.style.scrollSnapType = '';
+  }, 500);
 }
 
 function scrollGateTo(i){
   i = Math.max(0, Math.min(gateCards.length - 1, i));
-  // native smooth scrollTo gets fought/killed by our per-frame transform
-  // updates below, so drive the scroll position ourselves instead
   const card = gateCards[i];
   const target = card.offsetLeft + card.offsetWidth / 2 - gateCarousel.clientWidth / 2;
-  animateScrollTo(target, 420);
+  animateScrollTo(target);
 }
 
 gatePrevBtn.addEventListener('click', () => scrollGateTo(gateActiveIndex - 1));
