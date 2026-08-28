@@ -1309,7 +1309,12 @@ footer{
 }
 .djing.djing-opened .about-djing-hero-cue{opacity:0;}
 
-.about-djing-content{
+/* both DJing's and Cinematography's content sit behind the same single
+   unlock: clicking the DJing vinyl. Neither is reachable by scrolling past
+   without clicking it first — #page-about.vinyl-unlocked is the one flag
+   js/script.js sets on click that reveals both at once. */
+.about-djing-content,
+.about-cinema-content{
   opacity:0;
   transform:translateY(48px);
   max-height:0;
@@ -1317,13 +1322,44 @@ footer{
   pointer-events:none;
   transition:opacity 0.9s var(--ease) 0.45s, transform 0.9s var(--ease) 0.45s, max-height 0s linear 1.4s;
 }
-.djing.djing-opened .about-djing-content{
+#page-about.vinyl-unlocked .about-djing-content,
+#page-about.vinyl-unlocked .about-cinema-content{
   opacity:1;
   transform:translateY(0);
   max-height:4000px;
   pointer-events:auto;
   transition:opacity 0.9s var(--ease) 0.45s, transform 0.9s var(--ease) 0.45s;
 }
+
+/* "the contents generate as it goes to its place" — the bio copy and the
+   mixes/reels header don't just fade in as one flat block, they cascade in
+   one piece after another, timed to land after the vinyl has mostly
+   docked. The mix/reel cards underneath already cascade in on their own
+   via the existing scroll .in-view observer, so they're left alone. */
+.about-djing-content .about-intro-copy > *,
+.about-cinema-content .about-intro-copy > *,
+.about-djing-content .about-mixes-wrap > .section-title,
+.about-cinema-content .about-mixes-wrap > .section-title,
+.about-djing-content .about-mixes-wrap > .about-lede,
+.about-cinema-content .about-mixes-wrap > .about-lede{
+  opacity:0;
+  transform:translateY(18px);
+  transition:opacity 0.6s var(--ease), transform 0.6s var(--ease);
+}
+#page-about.vinyl-unlocked .about-intro-copy > *{
+  opacity:1;
+  transform:translateY(0);
+}
+#page-about.vinyl-unlocked .about-mixes-wrap > .section-title,
+#page-about.vinyl-unlocked .about-mixes-wrap > .about-lede{
+  opacity:1;
+  transform:translateY(0);
+}
+.about-intro-copy > *:nth-child(1){transition-delay:0.6s;}
+.about-intro-copy > *:nth-child(2){transition-delay:0.78s;}
+.about-intro-copy > *:nth-child(3){transition-delay:0.94s;}
+.about-mixes-wrap > .section-title{transition-delay:1.05s;}
+.about-mixes-wrap > .about-lede{transition-delay:1.18s;}
 
 /* audio-reactive border — frames the whole DJing section, not just a
    corner widget. js/script.js writes --djing-border-w/--djing-border-a
@@ -1358,10 +1394,12 @@ footer{
   }
   .about-spin-stage--hero{width:min(60vh, 80vw, 320px); height:min(60vh, 80vw, 320px);}
   .about-vinyl-dock-slot{margin:0 auto;}
-  .about-djing-content{
+  .about-djing-content,
+  .about-cinema-content{
     transition:opacity 0.6s var(--ease), max-height 0s linear 0.6s;
   }
-  .djing.djing-opened .about-djing-content{
+  #page-about.vinyl-unlocked .about-djing-content,
+  #page-about.vinyl-unlocked .about-cinema-content{
     transition:opacity 0.6s var(--ease);
   }
 }

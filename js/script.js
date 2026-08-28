@@ -575,19 +575,30 @@ function dockVinyl(mount, dock){
   mount.style.transformOrigin = 'center center';
   mount.style.transition = 'none';
   mount.style.transform = `translate(${dx}px, ${dy}px) scale(${scale})`;
-  mount.offsetWidth; // force reflow so the jump above applies before the transition starts
-  mount.style.transition = 'transform 1.1s var(--ease)';
-  mount.style.transform = 'none';
+  // two rAFs (not a forced-reflow read) reliably guarantee the browser has
+  // painted the jump above before the transition starts — a single forced
+  // reflow can still occasionally coalesce with the next style change and
+  // skip straight to the end state, which read as a jump-cut, not a smooth move
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      mount.style.transition = 'transform 1.3s cubic-bezier(0.16, 1, 0.3, 1)';
+      mount.style.transform = 'none';
+    });
+  });
 }
 
 /* about page — djing hero reveal: click the giant vinyl once, it starts
    spinning for real and docks beside the bio text while the mix gallery
-   slides up. This handler flips the .djing-opened state (CSS handles the
-   hero's own collapse and the content reveal), runs the FLIP dock above,
-   and starts the audio graph (a genuine user gesture, required for
-   autoplay policy). */
+   slides up. This is also the single unlock for the Cinematography section
+   below it: #page-about.vinyl-unlocked is what reveals both — nothing past
+   the vinyl is visible until it's been clicked, even after scrolling past
+   it. This handler flips that flag (CSS handles both content reveals, the
+   hero's own collapse, and the staggered "generate" cascade of each
+   section's bio/heading), runs the FLIP dock above, and starts the audio
+   graph (a genuine user gesture, required for autoplay policy). */
 const djingHeroBtn = document.getElementById('djing-hero-btn');
 const djingCategory = djingHeroBtn ? djingHeroBtn.closest('.about-category') : null;
+const aboutPageEl = document.getElementById('page-about');
 if(djingHeroBtn && djingCategory){
   djingHeroBtn.addEventListener('click', () => {
     if(djingCategory.classList.contains('djing-opened')) return; // one-shot
@@ -595,6 +606,7 @@ if(djingHeroBtn && djingCategory){
     if(vinyl) vinyl.startSpin();
     dockVinyl(document.getElementById('djing-hero-vinyl'), document.getElementById('djing-vinyl-dock'));
     djingCategory.classList.add('djing-opened');
+    if(aboutPageEl) aboutPageEl.classList.add('vinyl-unlocked');
     initAboutAudioGraph();
   });
 }
@@ -603,9 +615,11 @@ if(djingHeroBtn && djingCategory){
    per-orb DOM elements: just three CSS custom properties re-written on the
    section every frame, read by .about-djing-border's box-shadow. Reacts to
    whatever's playing on the shared #bg-audio element (or idles gently).
-   Uses a fast-attack/slow-release envelope on the bass/low-mid bins (where
-   kicks and snares live) instead of an all-bin average, so it visibly
-   punches on the beat instead of just gently wobbling. */
+   Uses a fast-attack/very-fast-release envelope on the bass/low-mid bins
+   (where kicks and snares live) instead of an all-bin average, and swings
+   across the border's FULL range on every hit — width and glow both drop
+   close to zero between beats, then spike to their max on one, so the
+   motion is unmistakable instead of a subtle wobble around one shade. */
 if(djingCategory){
   let borderClock = 0;
   let borderLevel = 0;
@@ -615,18 +629,20 @@ if(djingCategory){
     let target;
     if(playing){
       audioGraph.analyser.getByteFrequencyData(audioGraph.data);
-      const bassCount = Math.max(1, Math.floor(audioGraph.data.length * 0.35));
+      const bassCount = Math.max(1, Math.floor(audioGraph.data.length * 0.3));
       let peak = 0;
       for(let i = 0; i < bassCount; i++) peak = Math.max(peak, audioGraph.data[i]);
       target = peak / 255; // 0..1
-      // fast attack (snap up on a hit), slower release (falls back down between beats)
-      borderLevel = target > borderLevel ? target : borderLevel * 0.82 + target * 0.18;
+      // near-instant attack (snaps up right on the hit), fast release (drops
+      // back down well before the next beat, instead of staying elevated)
+      borderLevel = target > borderLevel ? target : borderLevel * 0.62 + target * 0.38;
     } else {
-      borderClock += 0.035;
-      borderLevel = (Math.sin(borderClock) + 1) / 2 * 0.35; // gentle idle pulse, never fully off
+      // idle: a full down-to-up-to-down sweep, slow enough to actually see
+      borderClock += 0.022;
+      borderLevel = Math.pow((Math.sin(borderClock) + 1) / 2, 1.4);
     }
-    djingCategory.style.setProperty('--djing-border-w', `${(2 + borderLevel * 9).toFixed(2)}px`);
-    djingCategory.style.setProperty('--djing-border-a', (0.15 + borderLevel * 0.8).toFixed(2));
-    djingCategory.style.setProperty('--djing-glow', `${(6 + borderLevel * 70).toFixed(1)}px`);
+    djingCategory.style.setProperty('--djing-border-w', `${(0.5 + borderLevel * 13).toFixed(2)}px`);
+    djingCategory.style.setProperty('--djing-border-a', (0.08 + borderLevel * 0.9).toFixed(2));
+    djingCategory.style.setProperty('--djing-glow', `${(2 + borderLevel * 100).toFixed(1)}px`);
   })();
 }

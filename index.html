@@ -496,6 +496,10 @@
     </section>
 
     <section class="about-category" data-category="cinematography">
+      <!-- gated behind the same DJing vinyl click as .about-djing-content — the
+           page treats "click the vinyl" as a single unlock for everything past
+           the DJing hero, so nothing here shows until that happens. -->
+      <div class="about-cinema-content" id="cinema-content">
       <div class="about-float-dock">
         <img src="assets/about/cameraroll.jpg" alt="" onerror="this.parentElement.style.display='none'">
       </div>
@@ -517,7 +521,7 @@
         </div>
       </div>
 
-      <div class="wrap wrap-wide">
+      <div class="wrap wrap-wide about-mixes-wrap">
         <div class="section-title">reels</div>
         <p class="about-lede" style="margin-bottom:8px">a small gallery of short films and clips I've shot — click a cover for a closer look.</p>
         <div class="about-mix-grid">
@@ -570,6 +574,7 @@
             <div class="about-mix-meta">timelapse · 2026</div>
           </div>
         </div>
+      </div>
       </div>
     </section>
   </div>
