@@ -1041,7 +1041,16 @@ footer{
 .about-banner-overlay{
   position:absolute;
   inset:0;
-  background:linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.75) 100%);
+  /* fades the photo into the page's black background at the top and
+     bottom edges only (a vertical gradient never varies left-to-right, so
+     the sides stay a hard, untouched edge) — short enough that the
+     transition still reads as a distinct edge, not a slow bleed */
+  background:linear-gradient(180deg,
+    #000 0%,
+    rgba(0,0,0,0.55) 9%,
+    rgba(0,0,0,0.55) 55%,
+    rgba(0,0,0,0.75) 88%,
+    #000 100%);
 }
 .about-banner-copy{
   position:relative;
