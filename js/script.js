@@ -19,7 +19,7 @@ function showPage(id){
   window.dispatchEvent(new Event('resize'));
   if(id === 'about'){
     if(typeof updateAboutVinylSpin === 'function') updateAboutVinylSpin();
-    if(typeof djingHeroVinyl !== 'undefined' && djingHeroVinyl) djingHeroVinyl.resize();
+    if(typeof ensureDjingVinyl === 'function') ensureDjingVinyl();
   }
 }
 
@@ -449,8 +449,12 @@ function createAboutVinyl(mount){
   mount.appendChild(renderer.domElement);
 
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 20);
-  camera.position.set(0, 3.4, 2.3); // looking down at the disc, like a turntable
+  const camera = new THREE.PerspectiveCamera(26, 1, 0.1, 20);
+  // dead-on overhead view (not tilted) — a flat disc viewed perfectly
+  // perpendicular to its face renders as a true circle; any tilt turns it
+  // into an ellipse, which is what "make it a circle" was pointing at
+  camera.up.set(0, 0, -1); // avoid the degenerate lookAt when position is directly above the target
+  camera.position.set(0, 7.6, 0); // pulled back enough that the disc reads as a circle with margin, not a square that fills every corner
   camera.lookAt(0, 0, 0);
 
   scene.add(new THREE.AmbientLight(0xffffff, 0.55));
@@ -506,20 +510,18 @@ function createAboutVinyl(mount){
   );
   scene.add(body); // cylinder's flat caps already face up/down (local Y) — matches the top-down camera
 
-  function resize(){
-    // skip while the About page is hidden (mount has zero size then) — sizing
-    // the renderer to a 0/1px buffer and later growing it corrupts the
-    // WebGL render target on some GPUs, leaving the canvas permanently blank
-    const w = mount.clientWidth;
-    const h = mount.clientHeight;
-    if(!w || !h) return;
-    renderer.setSize(w, h, false);
-    camera.aspect = w / h;
-    camera.updateProjectionMatrix();
-  }
-  resize();
-  const ro = new ResizeObserver(resize);
-  ro.observe(mount);
+  // fixed internal render resolution, set once, regardless of the mount's
+  // current on-screen size (the big hero stage and the small docked slot
+  // both use this same canvas element via CSS width/height:100%). Sizing
+  // the renderer to the container's *live* size — 0px while it's still
+  // hidden, then bigger once shown — was leaving the canvas permanently
+  // blank on this machine's GPU, so the buffer size is now decoupled from
+  // layout entirely: no ResizeObserver, no dependency on when the mount
+  // becomes visible.
+  const RENDER_SIZE = 640;
+  renderer.setSize(RENDER_SIZE, RENDER_SIZE, false);
+  camera.aspect = 1;
+  camera.updateProjectionMatrix();
 
   let spinning = false;
   let idleAngle = 0;
@@ -538,49 +540,93 @@ function createAboutVinyl(mount){
 
   return {
     startSpin(){ spinning = true; },
-    resize,
   };
 }
 
-const djingHeroVinyl = createAboutVinyl(document.getElementById('djing-hero-vinyl'));
+/* the Three.js scene is created lazily, the first time the About page is
+   actually shown — never while its ancestor is still display:none. Some
+   GPUs/browsers permanently degrade a WebGL context that's constructed
+   inside a hidden subtree (even if it's resized to the correct size once
+   visible), so the fix is to never construct it hidden in the first
+   place, not just to defer the resize. */
+let djingHeroVinyl = null;
+function ensureDjingVinyl(){
+  if(djingHeroVinyl) return djingHeroVinyl;
+  djingHeroVinyl = createAboutVinyl(document.getElementById('djing-hero-vinyl'));
+  return djingHeroVinyl;
+}
+
+/* about page — physically move the vinyl mount (canvas and all) from the
+   hero into its resting slot beside "behind the decks", using a FLIP
+   animation: read its current on-screen box, reparent it (which snaps it
+   to the new box instantly), then animate FROM the old box back to
+   identity. This lands it in real grid layout next to the bio text — it
+   can never overlap the copy or the mix grid below, unlike the old
+   position:absolute + calc(vw) guess. The WebGL canvas keeps rendering
+   (and keeps spinning) the whole time; only a CSS transform moves it. */
+function dockVinyl(mount, dock){
+  if(!mount || !dock) return;
+  const first = mount.getBoundingClientRect();
+  dock.appendChild(mount);
+  const last = mount.getBoundingClientRect();
+  const dx = (first.left + first.width / 2) - (last.left + last.width / 2);
+  const dy = (first.top + first.height / 2) - (last.top + last.height / 2);
+  const scale = first.width / last.width;
+  mount.style.transformOrigin = 'center center';
+  mount.style.transition = 'none';
+  mount.style.transform = `translate(${dx}px, ${dy}px) scale(${scale})`;
+  mount.offsetWidth; // force reflow so the jump above applies before the transition starts
+  mount.style.transition = 'transform 1.1s var(--ease)';
+  mount.style.transform = 'none';
+}
 
 /* about page — djing hero reveal: click the giant vinyl once, it starts
-   spinning for real and docks aside while the bio + mix gallery slide up.
-   CSS drives the shrink/dock/reveal sequence via the .djing-opened class —
-   this handler flips that state, starts the vinyl spinning, and starts
-   the audio graph (a genuine user gesture, required for autoplay policy). */
+   spinning for real and docks beside the bio text while the mix gallery
+   slides up. This handler flips the .djing-opened state (CSS handles the
+   hero's own collapse and the content reveal), runs the FLIP dock above,
+   and starts the audio graph (a genuine user gesture, required for
+   autoplay policy). */
 const djingHeroBtn = document.getElementById('djing-hero-btn');
 const djingCategory = djingHeroBtn ? djingHeroBtn.closest('.about-category') : null;
 if(djingHeroBtn && djingCategory){
   djingHeroBtn.addEventListener('click', () => {
     if(djingCategory.classList.contains('djing-opened')) return; // one-shot
-    if(djingHeroVinyl) djingHeroVinyl.startSpin();
+    const vinyl = ensureDjingVinyl();
+    if(vinyl) vinyl.startSpin();
+    dockVinyl(document.getElementById('djing-hero-vinyl'), document.getElementById('djing-vinyl-dock'));
     djingCategory.classList.add('djing-opened');
     initAboutAudioGraph();
   });
 }
 
 /* about page — audio-reactive border around the whole DJing section. No
-   per-orb DOM elements: just two CSS custom properties re-written on the
+   per-orb DOM elements: just three CSS custom properties re-written on the
    section every frame, read by .about-djing-border's box-shadow. Reacts to
-   whatever's playing on the shared #bg-audio element (or idles gently). */
+   whatever's playing on the shared #bg-audio element (or idles gently).
+   Uses a fast-attack/slow-release envelope on the bass/low-mid bins (where
+   kicks and snares live) instead of an all-bin average, so it visibly
+   punches on the beat instead of just gently wobbling. */
 if(djingCategory){
   let borderClock = 0;
+  let borderLevel = 0;
   (function renderDjingBorder(){
     requestAnimationFrame(renderDjingBorder);
     const playing = audioGraph && audio && !audio.paused;
-    let level;
+    let target;
     if(playing){
       audioGraph.analyser.getByteFrequencyData(audioGraph.data);
-      let sum = 0;
-      for(let i = 0; i < audioGraph.data.length; i++) sum += audioGraph.data[i];
-      level = (sum / audioGraph.data.length) / 255; // 0..1 average
+      const bassCount = Math.max(1, Math.floor(audioGraph.data.length * 0.35));
+      let peak = 0;
+      for(let i = 0; i < bassCount; i++) peak = Math.max(peak, audioGraph.data[i]);
+      target = peak / 255; // 0..1
+      // fast attack (snap up on a hit), slower release (falls back down between beats)
+      borderLevel = target > borderLevel ? target : borderLevel * 0.82 + target * 0.18;
     } else {
-      borderClock += 0.03;
-      level = (Math.sin(borderClock) + 1) / 2 * 0.4; // gentle idle pulse, never fully off
+      borderClock += 0.035;
+      borderLevel = (Math.sin(borderClock) + 1) / 2 * 0.35; // gentle idle pulse, never fully off
     }
-    djingCategory.style.setProperty('--djing-border-w', `${(2 + level * 3).toFixed(2)}px`);
-    djingCategory.style.setProperty('--djing-border-a', (0.18 + level * 0.55).toFixed(2));
-    djingCategory.style.setProperty('--djing-glow', `${(8 + level * 34).toFixed(1)}px`);
+    djingCategory.style.setProperty('--djing-border-w', `${(2 + borderLevel * 9).toFixed(2)}px`);
+    djingCategory.style.setProperty('--djing-border-a', (0.15 + borderLevel * 0.8).toFixed(2));
+    djingCategory.style.setProperty('--djing-glow', `${(6 + borderLevel * 70).toFixed(1)}px`);
   })();
 }
