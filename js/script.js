@@ -17,10 +17,6 @@ function showPage(id){
   next.classList.add('active');
   window.scrollTo(0,0);
   window.dispatchEvent(new Event('resize'));
-  if(id === 'about'){
-    if(typeof updateAboutVinylSpin === 'function') updateAboutVinylSpin();
-    if(typeof ensureDjingVinyl === 'function') ensureDjingVinyl();
-  }
 }
 
 const tlObserver = new IntersectionObserver((entries) => {
@@ -66,6 +62,17 @@ function showMusicGate(){
   });
 }
 
+/* re-opens the gate on demand (from the "pick a song" pill) regardless of
+   the decided flag — the underlying page is untouched while it's open, so
+   closing it again leaves the user exactly wherever they were. */
+function reopenMusicGate(){
+  gate.hidden = false;
+  gate.classList.add('fading');
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => gate.classList.remove('fading'));
+  });
+}
+
 function closeGate(){
   gate.classList.add('fading');
   setTimeout(() => { gate.hidden = true; }, 700);
@@ -73,8 +80,10 @@ function closeGate(){
 }
 
 /* mini player — pill by default, expands into a square now-playing panel
-   with its own prev/play/next so the track can be changed after entering */
-let currentTrackIndex = 0;
+   with its own prev/play/next so the track can be changed after entering.
+   currentTrackIndex is -1 until a track is actually picked (skipping never
+   sets it), which is what the "no track picked yet" pill state checks. */
+let currentTrackIndex = -1;
 
 function playTrackAtIndex(i, autoplay){
   i = ((i % gateCards.length) + gateCards.length) % gateCards.length;
@@ -83,12 +92,20 @@ function playTrackAtIndex(i, autoplay){
   audio.src = card.dataset.src;
   audio.currentTime = 0;
   audio.volume = 0.6;
-  audio.loop = true;
+  audio.loop = false; // auto-advance handles repeats — see 'ended' below, not native looping
   if(autoplay) audio.play().catch(() => {});
+  miniPlayer.classList.remove('no-track');
   updateMiniPlayerInfo();
 }
 
+// when a track finishes, move on to the next one automatically instead of
+// just stopping — only applies once a track has actually been picked
+audio.addEventListener('ended', () => {
+  if(currentTrackIndex >= 0) playTrackAtIndex(currentTrackIndex + 1, true);
+});
+
 function updateMiniPlayerInfo(){
+  if(currentTrackIndex < 0) return; // "no track" pill state has its own copy, set separately
   const card = gateCards[currentTrackIndex];
   const img = card.querySelector('.gate-art img');
   const playing = !audio.paused;
@@ -107,15 +124,35 @@ function showMiniPlayer(){
   requestAnimationFrame(() => miniPlayer.classList.add('showing'));
 }
 
+/* shown after the user skips the gate — same bottom-right pill, but it
+   reads "pick a song" and clicking it reopens the gate instead of
+   expanding a now-playing panel that has nothing to show. */
+function showMiniPlayerNoTrack(){
+  miniPlayer.classList.remove('expanded');
+  miniPlayer.classList.add('no-track');
+  miniTitle.textContent = 'pick a song';
+  miniPlayer.hidden = false;
+  requestAnimationFrame(() => miniPlayer.classList.add('showing'));
+}
+
 function toggleMiniPlayback(){
   if(audio.paused) audio.play().catch(() => {});
   else audio.pause();
   updateMiniPlayerInfo();
 }
 
-skipBtn.addEventListener('click', () => closeGate());
+skipBtn.addEventListener('click', () => {
+  closeGate();
+  showMiniPlayerNoTrack();
+});
 
-miniPlayerPill.addEventListener('click', () => miniPlayer.classList.add('expanded'));
+miniPlayerPill.addEventListener('click', () => {
+  if(miniPlayer.classList.contains('no-track')){
+    reopenMusicGate();
+  } else {
+    miniPlayer.classList.add('expanded');
+  }
+});
 miniCollapse.addEventListener('click', (e) => {
   e.stopPropagation();
   miniPlayer.classList.remove('expanded');
@@ -133,6 +170,37 @@ miniToggle.addEventListener('click', (e) => {
 miniPlayBtn.addEventListener('click', toggleMiniPlayback);
 miniPrevBtn.addEventListener('click', () => playTrackAtIndex(currentTrackIndex - 1, true));
 miniNextBtn.addEventListener('click', () => playTrackAtIndex(currentTrackIndex + 1, true));
+
+/* background-music ducking — a forward-looking hook for videos/audio
+   snippets that don't exist on the site yet. Delegated (capture phase,
+   since play/pause/ended don't bubble) so any <video> or <audio> added
+   later — anywhere on the site, without more code here — automatically
+   ducks the background track while it plays and resumes it exactly where
+   it left off when the clip pauses or ends. Muted clips (e.g. the project
+   gallery's silent hover previews) are skipped since they have no audio
+   to conflict with. Only applies if a background track was ever picked —
+   if the user skipped the gate and never chose a song, there's nothing to
+   duck or resume. */
+let bgMusicDuckedFor = null;
+function duckBackgroundMusic(e){
+  const el = e.target;
+  if(!(el instanceof HTMLMediaElement) || el === audio || el.muted) return;
+  if(currentTrackIndex < 0) return; // no background track was ever picked
+  if(!audio.paused){
+    audio.pause();
+    bgMusicDuckedFor = el;
+  }
+}
+function resumeBackgroundMusic(e){
+  const el = e.target;
+  if(!(el instanceof HTMLMediaElement) || el === audio || el.muted) return;
+  if(bgMusicDuckedFor !== el) return;
+  bgMusicDuckedFor = null;
+  audio.play().catch(() => {});
+}
+document.addEventListener('play', duckBackgroundMusic, true);
+document.addEventListener('pause', resumeBackgroundMusic, true);
+document.addEventListener('ended', resumeBackgroundMusic, true);
 
 /* gate carousel: preview tracks, pick one, enter the site */
 const gateCarousel = document.getElementById('gate-carousel');
@@ -302,6 +370,8 @@ gateEnterBtn.addEventListener('click', () => {
   const card = gateCards[gateActiveIndex];
   if(isPreviewingCard(card)){
     currentTrackIndex = gateActiveIndex;
+    audio.loop = false; // was true for the gate preview — main playback auto-advances instead of looping
+    miniPlayer.classList.remove('no-track');
   } else {
     playTrackAtIndex(gateActiveIndex, true);
   }
@@ -314,6 +384,11 @@ if(!gate.hidden){
   gateCarousel.scrollLeft = gateCards[0].offsetLeft + gateCards[0].offsetWidth / 2 - gateCarousel.clientWidth / 2;
   updateGateBackground();
   updateCarouselTransforms();
+} else {
+  // gate was already decided earlier this session (e.g. a reload) — the
+  // pill still needs to be there so a "skip" decision from before is still
+  // reversible now
+  showMiniPlayerNoTrack();
 }
 
 /* project gallery: hover-autoplay video, lightbox */
@@ -384,31 +459,31 @@ if(aboutMixCards.length){
   });
 }
 
-/* about page — every category's ".about-spin" element (the CD, the lens,
-   etc.) turns in real 3D (rotateY, with .about-spin-wrap's CSS perspective
-   giving it actual depth/foreshortening) proportionally to its own scroll
-   position, only while the about page is active. Class-based so any number
-   of categories can each have one without extra wiring. */
-const aboutSpinEls = document.querySelectorAll('.about-spin');
-
-function updateAboutVinylSpin(){
-  if(!aboutSpinEls.length) return;
-  const aboutPage = document.getElementById('page-about');
-  if(!aboutPage.classList.contains('active')) return;
-  aboutSpinEls.forEach(el => {
-    const rect = el.getBoundingClientRect();
-    const total = rect.height + window.innerHeight;
-    const progress = Math.min(1, Math.max(0, (window.innerHeight - rect.top) / total));
-    el.style.transform = `rotateY(${progress * 720}deg)`;
+/* about page — travel cards: scroll-reveal like the mix/reel cards, plus
+   click (or Enter/Space, since they're role="button") toggles .expanded to
+   show/hide the write-up underneath. */
+const aboutTravelCards = document.querySelectorAll('.about-travel-card');
+if(aboutTravelCards.length){
+  const aboutTravelObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting) entry.target.classList.add('in-view');
+    });
+  }, { threshold: 0.15 });
+  aboutTravelCards.forEach(card => {
+    aboutTravelObserver.observe(card);
+    function toggleTravelCard(){
+      const expanded = card.classList.toggle('expanded');
+      card.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+    }
+    card.addEventListener('click', toggleTravelCard);
+    card.addEventListener('keydown', (e) => {
+      if(e.key === 'Enter' || e.key === ' '){
+        e.preventDefault();
+        toggleTravelCard();
+      }
+    });
   });
 }
-
-let aboutVinylRaf;
-window.addEventListener('scroll', () => {
-  cancelAnimationFrame(aboutVinylRaf);
-  aboutVinylRaf = requestAnimationFrame(updateAboutVinylSpin);
-});
-updateAboutVinylSpin();
 
 /* about page — shared Web Audio graph, singleton — createMediaElementSource()
    may only be called once per <audio> element for its entire lifetime.
@@ -437,189 +512,22 @@ function initAboutAudioGraph(){
   return audioGraph;
 }
 
-/* about page — djing hero vinyl, rendered with Three.js (a real spinning
-   3D disc, not a photo). Built procedurally: a dark cylinder body plus a
-   canvas-generated groove/label texture on its top face. Exposes a single
-   continuous rotation that starts on click and never stops. */
-function createAboutVinyl(mount){
-  if(typeof THREE === 'undefined' || !mount) return null;
-
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-  mount.appendChild(renderer.domElement);
-
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(26, 1, 0.1, 20);
-  // dead-on overhead view (not tilted) — a flat disc viewed perfectly
-  // perpendicular to its face renders as a true circle; any tilt turns it
-  // into an ellipse, which is what "make it a circle" was pointing at
-  camera.up.set(0, 0, -1); // avoid the degenerate lookAt when position is directly above the target
-  camera.position.set(0, 7.6, 0); // pulled back enough that the disc reads as a circle with margin, not a square that fills every corner
-  camera.lookAt(0, 0, 0);
-
-  scene.add(new THREE.AmbientLight(0xffffff, 0.55));
-  const key = new THREE.DirectionalLight(0xffffff, 1.1);
-  key.position.set(2.5, 4, 3);
-  scene.add(key);
-  const rim = new THREE.DirectionalLight(0x8fb0ff, 0.6);
-  rim.position.set(-3, -1, -2);
-  scene.add(rim);
-
-  // procedural groove + label texture — drawn on a canvas at runtime, not a shipped image
-  const texCanvas = document.createElement('canvas');
-  texCanvas.width = texCanvas.height = 1024;
-  const tctx = texCanvas.getContext('2d');
-  const c = 512;
-  tctx.fillStyle = '#0a0a0a';
-  tctx.fillRect(0, 0, 1024, 1024);
-  tctx.strokeStyle = 'rgba(255,255,255,0.06)';
-  for(let r = 500; r > 170; r -= 3.2){
-    tctx.beginPath();
-    tctx.arc(c, c, r, 0, Math.PI * 2);
-    tctx.lineWidth = r % 12 < 1 ? 1.4 : 0.6;
-    tctx.stroke();
-  }
-  const labelGrad = tctx.createRadialGradient(c, c, 0, c, c, 165);
-  labelGrad.addColorStop(0, '#e8412c');
-  labelGrad.addColorStop(1, '#a82815');
-  tctx.fillStyle = labelGrad;
-  tctx.beginPath();
-  tctx.arc(c, c, 165, 0, Math.PI * 2);
-  tctx.fill();
-  tctx.fillStyle = 'rgba(255,255,255,0.9)';
-  tctx.font = '700 30px Arial, Helvetica, sans-serif';
-  tctx.textAlign = 'center';
-  tctx.fillText('MOKSH', c, c - 4);
-  tctx.font = '400 14px Arial, Helvetica, sans-serif';
-  tctx.fillStyle = 'rgba(255,255,255,0.7)';
-  tctx.fillText('33⅓ RPM', c, c + 24);
-  tctx.fillStyle = '#0a0a0a';
-  tctx.beginPath();
-  tctx.arc(c, c, 10, 0, Math.PI * 2);
-  tctx.fill();
-  const texture = new THREE.CanvasTexture(texCanvas);
-  texture.anisotropy = 4;
-
-  const body = new THREE.Mesh(
-    new THREE.CylinderGeometry(1.55, 1.55, 0.045, 96, 1, false),
-    [
-      new THREE.MeshStandardMaterial({ color: 0x0d0d0d, roughness: 0.45, metalness: 0.15 }),
-      new THREE.MeshStandardMaterial({ map: texture, roughness: 0.35, metalness: 0.1 }),
-      new THREE.MeshStandardMaterial({ color: 0x0d0d0d, roughness: 0.5, metalness: 0.1 }),
-    ]
-  );
-  scene.add(body); // cylinder's flat caps already face up/down (local Y) — matches the top-down camera
-
-  // fixed internal render resolution, set once, regardless of the mount's
-  // current on-screen size (the big hero stage and the small docked slot
-  // both use this same canvas element via CSS width/height:100%). Sizing
-  // the renderer to the container's *live* size — 0px while it's still
-  // hidden, then bigger once shown — was leaving the canvas permanently
-  // blank on this machine's GPU, so the buffer size is now decoupled from
-  // layout entirely: no ResizeObserver, no dependency on when the mount
-  // becomes visible.
-  const RENDER_SIZE = 640;
-  renderer.setSize(RENDER_SIZE, RENDER_SIZE, false);
-  camera.aspect = 1;
-  camera.updateProjectionMatrix();
-
-  let spinning = false;
-  let idleAngle = 0;
-
-  function tick(){
-    requestAnimationFrame(tick);
-    if(spinning){
-      body.rotation.y += 0.028; // real continuous turntable spin, ~2.4s per rotation
-    } else {
-      idleAngle += 0.0015;
-      body.rotation.y = Math.sin(idleAngle) * 0.12; // gentle idle sway before the click
-    }
-    renderer.render(scene, camera);
-  }
-  tick();
-
-  return {
-    startSpin(){ spinning = true; },
-  };
-}
-
-/* the Three.js scene is created lazily, the first time the About page is
-   actually shown — never while its ancestor is still display:none. Some
-   GPUs/browsers permanently degrade a WebGL context that's constructed
-   inside a hidden subtree (even if it's resized to the correct size once
-   visible), so the fix is to never construct it hidden in the first
-   place, not just to defer the resize. */
-let djingHeroVinyl = null;
-function ensureDjingVinyl(){
-  if(djingHeroVinyl) return djingHeroVinyl;
-  djingHeroVinyl = createAboutVinyl(document.getElementById('djing-hero-vinyl'));
-  return djingHeroVinyl;
-}
-
-/* about page — physically move the vinyl mount (canvas and all) from the
-   hero into its resting slot beside "behind the decks", using a FLIP
-   animation: read its current on-screen box, reparent it (which snaps it
-   to the new box instantly), then animate FROM the old box back to
-   identity. This lands it in real grid layout next to the bio text — it
-   can never overlap the copy or the mix grid below, unlike the old
-   position:absolute + calc(vw) guess. The WebGL canvas keeps rendering
-   (and keeps spinning) the whole time; only a CSS transform moves it. */
-function dockVinyl(mount, dock){
-  if(!mount || !dock) return;
-  const first = mount.getBoundingClientRect();
-  dock.appendChild(mount);
-  const last = mount.getBoundingClientRect();
-  const dx = (first.left + first.width / 2) - (last.left + last.width / 2);
-  const dy = (first.top + first.height / 2) - (last.top + last.height / 2);
-  const scale = first.width / last.width;
-  mount.style.transformOrigin = 'center center';
-  mount.style.transition = 'none';
-  mount.style.transform = `translate(${dx}px, ${dy}px) scale(${scale})`;
-  // two rAFs (not a forced-reflow read) reliably guarantee the browser has
-  // painted the jump above before the transition starts — a single forced
-  // reflow can still occasionally coalesce with the next style change and
-  // skip straight to the end state, which read as a jump-cut, not a smooth move
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      mount.style.transition = 'transform 1.3s cubic-bezier(0.16, 1, 0.3, 1)';
-      mount.style.transform = 'none';
-    });
-  });
-}
-
-/* about page — djing hero reveal: click the giant vinyl once, it starts
-   spinning for real and docks beside the bio text while the mix gallery
-   slides up. This is also the single unlock for the Cinematography section
-   below it: #page-about.vinyl-unlocked is what reveals both — nothing past
-   the vinyl is visible until it's been clicked, even after scrolling past
-   it. This handler flips that flag (CSS handles both content reveals, the
-   hero's own collapse, and the staggered "generate" cascade of each
-   section's bio/heading), runs the FLIP dock above, and starts the audio
-   graph (a genuine user gesture, required for autoplay policy). */
-const djingHeroBtn = document.getElementById('djing-hero-btn');
-const djingCategory = djingHeroBtn ? djingHeroBtn.closest('.about-category') : null;
-const aboutPageEl = document.getElementById('page-about');
-if(djingHeroBtn && djingCategory){
-  djingHeroBtn.addEventListener('click', () => {
-    if(djingCategory.classList.contains('djing-opened')) return; // one-shot
-    const vinyl = ensureDjingVinyl();
-    if(vinyl) vinyl.startSpin();
-    dockVinyl(document.getElementById('djing-hero-vinyl'), document.getElementById('djing-vinyl-dock'));
-    djingCategory.classList.add('djing-opened');
-    if(aboutPageEl) aboutPageEl.classList.add('vinyl-unlocked');
-    initAboutAudioGraph();
-  });
-}
+/* the audio graph needs a real user gesture to resume under the browser's
+   autoplay policy. There's no dedicated click target for it anymore (the
+   DJing content is just visible on the page now), so the first click
+   anywhere on the site — nav, gate, anything — creates and resumes it. */
+document.addEventListener('click', () => initAboutAudioGraph(), { once: true });
 
 /* about page — audio-reactive border around the whole DJing section. No
    per-orb DOM elements: just three CSS custom properties re-written on the
    section every frame, read by .about-djing-border's box-shadow. Reacts to
    whatever's playing on the shared #bg-audio element (or idles gently).
-   Uses a fast-attack/very-fast-release envelope on the bass/low-mid bins
-   (where kicks and snares live) instead of an all-bin average, and swings
-   across the border's FULL range on every hit — width and glow both drop
-   close to zero between beats, then spike to their max on one, so the
-   motion is unmistakable instead of a subtle wobble around one shade. */
+   Tracks the peak of the bass/low-mid bins (where kicks and snares live)
+   with an instant attack and a hard release, and swings across the
+   border's FULL range on every hit — at rest it's basically invisible,
+   and on a hit it jumps straight to the max, so the motion is completely
+   unmistakable instead of a wobble around one shade. */
+const djingCategory = document.querySelector('.about-category.djing');
 if(djingCategory){
   let borderClock = 0;
   let borderLevel = 0;
@@ -633,16 +541,16 @@ if(djingCategory){
       let peak = 0;
       for(let i = 0; i < bassCount; i++) peak = Math.max(peak, audioGraph.data[i]);
       target = peak / 255; // 0..1
-      // near-instant attack (snaps up right on the hit), fast release (drops
-      // back down well before the next beat, instead of staying elevated)
-      borderLevel = target > borderLevel ? target : borderLevel * 0.62 + target * 0.38;
+      // instant attack (jumps straight to the hit's level), hard release
+      // (drops back down well before the next beat instead of lingering)
+      borderLevel = target > borderLevel ? target : borderLevel * 0.5 + target * 0.5;
     } else {
-      // idle: a full down-to-up-to-down sweep, slow enough to actually see
-      borderClock += 0.022;
-      borderLevel = Math.pow((Math.sin(borderClock) + 1) / 2, 1.4);
+      // idle: a full 0-to-1-to-0 sweep, slow enough to actually track by eye
+      borderClock += 0.028;
+      borderLevel = Math.pow((Math.sin(borderClock) + 1) / 2, 1.2);
     }
-    djingCategory.style.setProperty('--djing-border-w', `${(0.5 + borderLevel * 13).toFixed(2)}px`);
-    djingCategory.style.setProperty('--djing-border-a', (0.08 + borderLevel * 0.9).toFixed(2));
-    djingCategory.style.setProperty('--djing-glow', `${(2 + borderLevel * 100).toFixed(1)}px`);
+    djingCategory.style.setProperty('--djing-border-w', `${(borderLevel * 16).toFixed(2)}px`);
+    djingCategory.style.setProperty('--djing-border-a', Math.min(1, borderLevel * 1.05).toFixed(2));
+    djingCategory.style.setProperty('--djing-glow', `${(borderLevel * 140).toFixed(1)}px`);
   })();
 }

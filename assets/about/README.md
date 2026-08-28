@@ -2,15 +2,21 @@ Drop real images/video here — filenames the About page expects, per category:
 
 ## DJing (`.about-category[data-category="djing"]`)
 - dj-mixer.jpg — banner background
-- vinyl-record.jpg — the spinning CD/vinyl graphic
-- soundwave.jpg — white waveform on black, floating side divider
+
+No other images — the vinyl graphic was removed; the section is just the bio copy, the audio-reactive border, and the mix gallery below.
 
 ## Cinematography (`.about-category[data-category="cinematography"]`)
 - comiccamera.jpg — banner background
-- cameralens.jpg — the spinning lens graphic
-- cameraroll.jpg — spiraling film strip, floating side divider
+- cameraroll.jpg — the big film-strip photo next to the bio text (fills half the section)
 
-Until these exist, the page degrades gracefully (CSS `background-image` just shows the fallback dark background, no broken-image icons for the banners; `<img onerror>` hides the element entirely for the spin/float graphics).
+## Travel (`.about-category[data-category="travel"]`)
+- travel-placeholder.jpg — banner background
+- Each `.about-travel-card`'s `.about-travel-cover` is waiting on its own photo — add an `<img>` inside it and I'll write the description in `.about-travel-detail` from the photo.
+
+## Future (`.about-category[data-category="future"]`)
+- future-placeholder.jpg — banner background
+
+Until these exist, the page degrades gracefully (CSS `background-image` just shows the fallback dark background, no broken-image icons for the banners; `<img onerror>` hides the element entirely for the cameraroll photo).
 
 ## Gallery cards (`.about-mix-grid` — reused across categories)
 Each category has 6 placeholder cards waiting on real content — for each one you want to fill in:

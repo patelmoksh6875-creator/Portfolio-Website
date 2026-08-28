@@ -905,6 +905,11 @@ footer{
 }
 .mini-player.expanded .mini-player-pill{display:none;}
 
+/* shown after skipping the gate — no track to toggle, so the play/pause
+   icon is hidden and the whole pill exists only to reopen the gate */
+.mini-player.no-track .mini-player-toggle{display:none;}
+.mini-player.no-track .mini-player-pill{padding:10px 18px;}
+
 .mini-player-toggle{
   width:30px;
   height:30px;
@@ -1110,71 +1115,35 @@ footer{
 
 .about-category{position:relative; padding:100px 0 120px; overflow:hidden;}
 
-.about-intro-grid{
-  display:grid;
-  grid-template-columns:280px 1fr;
-  gap:56px;
-  align-items:center;
-}
-.about-intro-grid--djing{
-  grid-template-columns:170px 1fr;
-  align-items:center;
-}
-/* landing spot for the docked hero vinyl — reserves real layout space so
-   the docked disc can never overlap the bio text or the mix grid below it */
-.about-vinyl-dock-slot{
-  width:170px;
-  height:170px;
-  position:relative;
-}
-
-/* the CD — isolated from its black background via mix-blend-mode (the
-   image's black pixels merge into the page's own black bg, leaving only
-   the bright disc visible, no visible photo rectangle) and turned in real
-   3D as the user scrolls, using CSS perspective + rotateY (no Three.js) */
-.about-spin-wrap{
-  display:flex;
-  justify-content:center;
-  perspective:1000px;
-}
-.about-spin-stage{
-  width:240px;
-  height:240px;
-  position:relative;
-}
-.about-spin{
-  width:100%;
-  height:100%;
-  object-fit:contain;
-  display:block;
-  mix-blend-mode:screen;
-  will-change:transform;
-  filter:drop-shadow(0 20px 40px rgba(0,0,0,0.6));
-}
 .about-intro-copy .section-title{color:#fff;}
 .about-lede{font-size:14px; line-height:1.8; color:var(--muted); max-width:52ch;}
 
-/* the soundwave — same isolation trick, docked to the side as a small
-   floating strip instead of a full-width banner, bobbing continuously */
-.about-float-dock{
-  position:absolute;
-  top:50%;
-  right:24px;
-  width:180px;
-  transform:translateY(-50%);
-  pointer-events:none;
-  z-index:0;
+/* DJing's (and Travel's/Future's) bio copy — centered, no side art */
+.about-intro-copy--center{
+  text-align:center;
+  max-width:640px;
+  margin:0 auto;
 }
-.about-float-dock img{
+.about-intro-copy--center .about-lede{margin:0 auto;}
+
+/* Cinematography: bio on the left, the film-strip photo filling the other
+   half of the section on the right — a static, real two-column layout
+   (no bounce, no absolute positioning) so the two never overlap regardless
+   of copy length. mix-blend-mode:screen keeps the same black-background
+   isolation trick used elsewhere on this page. */
+.about-cinema-hero{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:64px;
+  align-items:center;
+}
+.about-cinema-roll{
+  width:100%;
+}
+.about-cinema-roll img{
   width:100%;
   display:block;
   mix-blend-mode:screen;
-  opacity:0.85;
-  animation:about-wave-float 4.5s ease-in-out infinite;
-}
-@keyframes about-wave-float{
-  0%, 100%{transform:translateY(0);}
-  50%{transform:translateY(-18px);}
 }
 
 /* about page — djing mix gallery */
@@ -1241,125 +1210,61 @@ footer{
   text-transform:lowercase;
 }
 
-/* djing hero-reveal: a giant vinyl fills the section; clicking it starts a
-   real continuous spin and docks it aside while the rest of the content
-   slides up. One-shot — see the click handler's guard in js/script.js. */
-.about-djing-hero{
+.about-mixes-wrap--center{text-align:center;}
+.about-mixes-wrap--center .about-lede{margin:0 auto;}
+
+/* travel — expandable cards; click/tap or Enter/Space toggles .expanded,
+   which reveals .about-travel-detail below the cover+summary. Placeholder
+   copy for now — real photos/descriptions replace it card by card. */
+.about-travel-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));
+  gap:32px;
+  margin-top:32px;
+  text-align:left;
+}
+.about-travel-card{
+  cursor:pointer;
+  opacity:0;
+  transform:translateY(16px);
+  transition:opacity 0.6s var(--ease), transform 0.6s var(--ease);
+}
+.about-travel-card.in-view{opacity:1; transform:translateY(0);}
+.about-travel-cover{
   position:relative;
-  min-height:100vh;
+  aspect-ratio:4/3;
+  border-radius:14px;
+  overflow:hidden;
+  background:rgba(255,255,255,0.05);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  border:1px dashed rgba(255,255,255,0.18);
   display:flex;
   align-items:center;
   justify-content:center;
-  transition:opacity 0.9s var(--ease);
+  transition:border-color 0.3s var(--ease-fast), background 0.3s var(--ease-fast);
 }
-.about-djing-hero-btn{
-  background:none;
-  border:none;
-  padding:0;
-  cursor:pointer;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:28px;
-}
-.about-spin-wrap--hero{perspective:1400px;}
-.about-spin-stage--hero{
-  width:min(70vh, 70vw, 640px);
-  height:min(70vh, 70vw, 640px);
-}
-.about-djing-hero-btn:hover .about-vinyl-3d canvas{
-  filter:drop-shadow(0 20px 50px rgba(0,0,0,0.65)) brightness(1.08);
-}
-.about-djing-hero-cue{
-  font-family:var(--mono);
-  font-size:12px;
-  letter-spacing:0.1em;
-  color:#999;
-  animation:about-cue-bob 1.8s var(--ease) infinite;
-  transition:opacity 0.4s var(--ease-fast);
-}
-
-/* mount point for the Three.js vinyl (js/script.js) — a real rendered 3D
-   disc, not an image. Sized by its .about-spin-stage(--hero) parent; the
-   canvas itself is sized/resized by JS to fill this box exactly. */
-.about-vinyl-3d{
-  width:100%;
-  height:100%;
-  position:relative;
-}
-.about-vinyl-3d canvas{
-  width:100%;
-  height:100%;
-  display:block;
-  transition:filter 0.4s var(--ease-fast);
-}
-
-/* the vinyl itself is physically reparented into #djing-vinyl-dock by
-   js/script.js (a FLIP animation — see dockVinyl()), landing in real grid
-   layout next to "behind the decks" instead of an absolutely-positioned
-   guess, so it can never overlap the bio text or the mix grid below it.
-   Once it's gone, the now-empty hero just collapses out of the way. */
-.djing.djing-opened .about-djing-hero{
-  min-height:0;
-  height:0;
-  opacity:0;
+.about-travel-card:hover .about-travel-cover,
+.about-travel-card.expanded .about-travel-cover{border-color:rgba(255,255,255,0.4); background:rgba(255,255,255,0.08);}
+.about-travel-cover img{width:100%; height:100%; object-fit:cover; display:block; position:absolute; inset:0;}
+.about-travel-summary{margin-top:14px; display:flex; align-items:baseline; justify-content:space-between; gap:12px;}
+.about-travel-detail{
   overflow:hidden;
-  pointer-events:none;
-  transition:height 0.9s var(--ease) 0.15s, opacity 0.5s var(--ease);
-}
-.djing.djing-opened .about-djing-hero-cue{opacity:0;}
-
-/* both DJing's and Cinematography's content sit behind the same single
-   unlock: clicking the DJing vinyl. Neither is reachable by scrolling past
-   without clicking it first — #page-about.vinyl-unlocked is the one flag
-   js/script.js sets on click that reveals both at once. */
-.about-djing-content,
-.about-cinema-content{
-  opacity:0;
-  transform:translateY(48px);
   max-height:0;
-  overflow:hidden;
-  pointer-events:none;
-  transition:opacity 0.9s var(--ease) 0.45s, transform 0.9s var(--ease) 0.45s, max-height 0s linear 1.4s;
-}
-#page-about.vinyl-unlocked .about-djing-content,
-#page-about.vinyl-unlocked .about-cinema-content{
-  opacity:1;
-  transform:translateY(0);
-  max-height:4000px;
-  pointer-events:auto;
-  transition:opacity 0.9s var(--ease) 0.45s, transform 0.9s var(--ease) 0.45s;
-}
-
-/* "the contents generate as it goes to its place" — the bio copy and the
-   mixes/reels header don't just fade in as one flat block, they cascade in
-   one piece after another, timed to land after the vinyl has mostly
-   docked. The mix/reel cards underneath already cascade in on their own
-   via the existing scroll .in-view observer, so they're left alone. */
-.about-djing-content .about-intro-copy > *,
-.about-cinema-content .about-intro-copy > *,
-.about-djing-content .about-mixes-wrap > .section-title,
-.about-cinema-content .about-mixes-wrap > .section-title,
-.about-djing-content .about-mixes-wrap > .about-lede,
-.about-cinema-content .about-mixes-wrap > .about-lede{
   opacity:0;
-  transform:translateY(18px);
-  transition:opacity 0.6s var(--ease), transform 0.6s var(--ease);
+  transition:max-height 0.5s var(--ease), opacity 0.4s var(--ease), margin-top 0.5s var(--ease);
 }
-#page-about.vinyl-unlocked .about-intro-copy > *{
+.about-travel-detail p{
+  font-size:13.5px;
+  line-height:1.7;
+  color:var(--muted);
+  margin:0;
+}
+.about-travel-card.expanded .about-travel-detail{
+  max-height:200px;
   opacity:1;
-  transform:translateY(0);
+  margin-top:12px;
 }
-#page-about.vinyl-unlocked .about-mixes-wrap > .section-title,
-#page-about.vinyl-unlocked .about-mixes-wrap > .about-lede{
-  opacity:1;
-  transform:translateY(0);
-}
-.about-intro-copy > *:nth-child(1){transition-delay:0.6s;}
-.about-intro-copy > *:nth-child(2){transition-delay:0.78s;}
-.about-intro-copy > *:nth-child(3){transition-delay:0.94s;}
-.about-mixes-wrap > .section-title{transition-delay:1.05s;}
-.about-mixes-wrap > .about-lede{transition-delay:1.18s;}
 
 /* audio-reactive border — frames the whole DJing section, not just a
    corner widget. js/script.js writes --djing-border-w/--djing-border-a
@@ -1383,25 +1288,9 @@ footer{
 
 @media(max-width:720px){
   .about-banner-title{font-size:48px;}
-  .about-intro-grid{grid-template-columns:1fr; text-align:center;}
-  .about-spin-stage{width:170px; height:170px; margin:0 auto;}
   .about-lede{margin:0 auto;}
-  .about-float-dock{
-    position:static;
-    transform:none;
-    width:140px;
-    margin:32px auto 0;
-  }
-  .about-spin-stage--hero{width:min(60vh, 80vw, 320px); height:min(60vh, 80vw, 320px);}
-  .about-vinyl-dock-slot{margin:0 auto;}
-  .about-djing-content,
-  .about-cinema-content{
-    transition:opacity 0.6s var(--ease), max-height 0s linear 0.6s;
-  }
-  #page-about.vinyl-unlocked .about-djing-content,
-  #page-about.vinyl-unlocked .about-cinema-content{
-    transition:opacity 0.6s var(--ease);
-  }
+  .about-cinema-hero{grid-template-columns:1fr; text-align:center; gap:32px;}
+  .about-cinema-hero .about-cinema-roll{order:-1;}
 }
 
 @media(max-width:520px){

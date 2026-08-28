@@ -117,7 +117,7 @@
   </div>
 </div>
 
-<audio id="bg-audio" loop preload="none"></audio>
+<audio id="bg-audio" preload="none"></audio>
 
 <div id="mini-player" class="mini-player" hidden>
   <div class="mini-player-pill" id="mini-player-pill">
@@ -403,28 +403,13 @@
     <section class="about-category djing" data-category="djing">
       <div class="about-djing-border" id="about-djing-border" aria-hidden="true"></div>
 
-      <div class="about-djing-hero" id="djing-hero">
-        <button class="about-djing-hero-btn" id="djing-hero-btn" type="button" aria-label="play and reveal">
-          <div class="about-spin-wrap about-spin-wrap--hero">
-            <div class="about-spin-stage about-spin-stage--hero" id="djing-hero-stage">
-              <div class="about-vinyl-3d" id="djing-hero-vinyl"></div>
-            </div>
-          </div>
-          <span class="about-djing-hero-cue">click to spin ↻</span>
-        </button>
-      </div>
-
-      <div class="about-djing-content" id="djing-content">
       <div class="wrap wrap-wide">
-        <div class="about-intro-grid about-intro-grid--djing">
-          <div class="about-vinyl-dock-slot" id="djing-vinyl-dock"></div>
-          <div class="about-intro-copy">
-            <div class="section-title">behind the decks</div>
-            <p class="about-lede">
-              add a short bio here — how you got into DJing and music production, what gear you use, what genres you gravitate toward.
-              replace this placeholder with your real story.
-            </p>
-          </div>
+        <div class="about-intro-copy about-intro-copy--center">
+          <div class="section-title">behind the decks</div>
+          <p class="about-lede">
+            add a short bio here — how you got into DJing and music production, what gear you use, what genres you gravitate toward.
+            replace this placeholder with your real story.
+          </p>
         </div>
       </div>
 
@@ -482,7 +467,6 @@
           </div>
         </div>
       </div>
-      </div>
     </section>
 
     <section class="about-banner" style="background-image:url('assets/about/comiccamera.jpg')">
@@ -496,21 +480,8 @@
     </section>
 
     <section class="about-category" data-category="cinematography">
-      <!-- gated behind the same DJing vinyl click as .about-djing-content — the
-           page treats "click the vinyl" as a single unlock for everything past
-           the DJing hero, so nothing here shows until that happens. -->
-      <div class="about-cinema-content" id="cinema-content">
-      <div class="about-float-dock">
-        <img src="assets/about/cameraroll.jpg" alt="" onerror="this.parentElement.style.display='none'">
-      </div>
-
       <div class="wrap wrap-wide">
-        <div class="about-intro-grid">
-          <div class="about-spin-wrap">
-            <div class="about-spin-stage">
-              <img class="about-spin" src="assets/about/cameralens.jpg" alt="camera lens" onerror="this.style.display='none'">
-            </div>
-          </div>
+        <div class="about-cinema-hero">
           <div class="about-intro-copy">
             <div class="section-title">behind the lens</div>
             <p class="about-lede">
@@ -518,10 +489,13 @@
               replace this placeholder with your real story.
             </p>
           </div>
+          <div class="about-cinema-roll">
+            <img src="assets/about/cameraroll.jpg" alt="" onerror="this.parentElement.style.display='none'">
+          </div>
         </div>
       </div>
 
-      <div class="wrap wrap-wide about-mixes-wrap">
+      <div class="wrap wrap-wide about-mixes-wrap about-mixes-wrap--center">
         <div class="section-title">reels</div>
         <p class="about-lede" style="margin-bottom:8px">a small gallery of short films and clips I've shot — click a cover for a closer look.</p>
         <div class="about-mix-grid">
@@ -575,6 +549,100 @@
           </div>
         </div>
       </div>
+    </section>
+
+    <section class="about-banner" style="background-image:url('assets/about/travel-placeholder.jpg')">
+      <div class="about-banner-overlay"></div>
+      <div class="about-banner-copy">
+        <div class="about-eyebrow">category 03</div>
+        <h1 class="about-banner-title">TRAVEL</h1>
+        <div class="about-banner-sub">places I want to go</div>
+        <div class="about-scroll-cue">scroll ↓</div>
+      </div>
+    </section>
+
+    <section class="about-category" data-category="travel">
+      <div class="wrap wrap-wide">
+        <div class="about-intro-copy about-intro-copy--center">
+          <div class="section-title">the list</div>
+          <p class="about-lede">
+            pictures and short clips from places I want to go, or have been — click a card to expand it and read more.
+          </p>
+        </div>
+      </div>
+
+      <div class="wrap wrap-wide about-mixes-wrap about-mixes-wrap--center">
+        <div class="about-travel-grid">
+          <div class="about-travel-card" tabindex="0" role="button" aria-expanded="false">
+            <div class="about-travel-cover">
+              <span class="about-mix-placeholder-label">photo coming soon</span>
+            </div>
+            <div class="about-travel-summary">
+              <div class="about-mix-title">place 01</div>
+              <div class="about-mix-meta">destination · TBD</div>
+            </div>
+            <div class="about-travel-detail">
+              <p>send me a photo of this place and I'll write the description here — what it is, why it's on the list, what you'd do there.</p>
+            </div>
+          </div>
+          <div class="about-travel-card" tabindex="0" role="button" aria-expanded="false">
+            <div class="about-travel-cover">
+              <span class="about-mix-placeholder-label">photo coming soon</span>
+            </div>
+            <div class="about-travel-summary">
+              <div class="about-mix-title">place 02</div>
+              <div class="about-mix-meta">destination · TBD</div>
+            </div>
+            <div class="about-travel-detail">
+              <p>send me a photo of this place and I'll write the description here — what it is, why it's on the list, what you'd do there.</p>
+            </div>
+          </div>
+          <div class="about-travel-card" tabindex="0" role="button" aria-expanded="false">
+            <div class="about-travel-cover">
+              <span class="about-mix-placeholder-label">photo coming soon</span>
+            </div>
+            <div class="about-travel-summary">
+              <div class="about-mix-title">place 03</div>
+              <div class="about-mix-meta">destination · TBD</div>
+            </div>
+            <div class="about-travel-detail">
+              <p>send me a photo of this place and I'll write the description here — what it is, why it's on the list, what you'd do there.</p>
+            </div>
+          </div>
+          <div class="about-travel-card" tabindex="0" role="button" aria-expanded="false">
+            <div class="about-travel-cover">
+              <span class="about-mix-placeholder-label">photo coming soon</span>
+            </div>
+            <div class="about-travel-summary">
+              <div class="about-mix-title">place 04</div>
+              <div class="about-mix-meta">destination · TBD</div>
+            </div>
+            <div class="about-travel-detail">
+              <p>send me a photo of this place and I'll write the description here — what it is, why it's on the list, what you'd do there.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="about-banner" style="background-image:url('assets/about/future-placeholder.jpg')">
+      <div class="about-banner-overlay"></div>
+      <div class="about-banner-copy">
+        <div class="about-eyebrow">category 04</div>
+        <h1 class="about-banner-title">FUTURE</h1>
+        <div class="about-banner-sub">what's next</div>
+        <div class="about-scroll-cue">scroll ↓</div>
+      </div>
+    </section>
+
+    <section class="about-category" data-category="future">
+      <div class="wrap wrap-wide">
+        <div class="about-intro-copy about-intro-copy--center">
+          <div class="section-title">what's ahead</div>
+          <p class="about-lede">
+            add what you want to do in the future here — goals, projects, places, skills. replace this placeholder with the real list.
+          </p>
+        </div>
       </div>
     </section>
   </div>
@@ -623,7 +691,6 @@
   <span>© 2026 moksh patel</span>
 </footer>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="js/script.js"></script>
 
 </body>
