@@ -383,6 +383,13 @@
 
   <!-- ABOUT -->
   <div class="page" id="page-about">
+    <section class="about-page-intro">
+      <div class="wrap wrap-wide about-page-intro-inner">
+        <div class="about-page-intro-eyebrow">about</div>
+        <h2 class="about-page-intro-title">here are some things I like doing<br>in my free time when I'm not coding.</h2>
+      </div>
+    </section>
+
     <section class="about-banner" style="background-image:url('assets/about/dj-mixer.jpg')">
       <div class="about-banner-overlay"></div>
       <div class="about-banner-copy">
@@ -394,11 +401,13 @@
     </section>
 
     <section class="about-category djing" data-category="djing">
+      <div class="about-djing-border" id="about-djing-border" aria-hidden="true"></div>
+
       <div class="about-djing-hero" id="djing-hero">
         <button class="about-djing-hero-btn" id="djing-hero-btn" type="button" aria-label="play and reveal">
           <div class="about-spin-wrap about-spin-wrap--hero">
             <div class="about-spin-stage about-spin-stage--hero" id="djing-hero-stage">
-              <img class="about-spin about-spin--hero" src="assets/about/vinyl-record.jpg" alt="vinyl" onerror="this.style.display='none'">
+              <div class="about-vinyl-3d" id="djing-hero-vinyl"></div>
             </div>
           </div>
           <span class="about-djing-hero-cue">click to spin ↻</span>
@@ -406,17 +415,8 @@
       </div>
 
       <div class="about-djing-content" id="djing-content">
-      <div class="about-float-dock">
-        <div class="about-visualizer" id="about-visualizer" data-style="orbs" aria-hidden="true"></div>
-      </div>
-
       <div class="wrap wrap-wide">
-        <div class="about-intro-grid">
-          <div class="about-spin-wrap">
-            <div class="about-spin-stage">
-              <img class="about-spin" src="assets/about/vinyl-record.jpg" alt="cd" onerror="this.style.display='none'">
-            </div>
-          </div>
+        <div class="about-intro-grid about-intro-grid--djing">
           <div class="about-intro-copy">
             <div class="section-title">behind the decks</div>
             <p class="about-lede">
@@ -617,6 +617,7 @@
   <span>© 2026 moksh patel</span>
 </footer>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="js/script.js"></script>
 
 </body>

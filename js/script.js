@@ -17,7 +17,10 @@ function showPage(id){
   next.classList.add('active');
   window.scrollTo(0,0);
   window.dispatchEvent(new Event('resize'));
-  if(id === 'about' && typeof updateAboutVinylSpin === 'function') updateAboutVinylSpin();
+  if(id === 'about'){
+    if(typeof updateAboutVinylSpin === 'function') updateAboutVinylSpin();
+    if(typeof djingHeroVinyl !== 'undefined' && djingHeroVinyl) djingHeroVinyl.resize();
+  }
 }
 
 const tlObserver = new IntersectionObserver((entries) => {
@@ -407,40 +410,23 @@ window.addEventListener('scroll', () => {
 });
 updateAboutVinylSpin();
 
-/* about page — djing hero reveal: click the giant vinyl once, it starts
-   spinning for real and docks aside while the bio + mix gallery slide up.
-   CSS drives the entire shrink/dock/reveal sequence via the .djing-opened
-   class — this handler just flips the state and starts the audio graph. */
-const djingHeroBtn = document.getElementById('djing-hero-btn');
-const djingHeroStage = document.getElementById('djing-hero-stage');
-const djingCategory = djingHeroBtn ? djingHeroBtn.closest('.about-category') : null;
-if(djingHeroBtn && djingCategory){
-  djingHeroBtn.addEventListener('click', () => {
-    if(djingCategory.classList.contains('djing-opened')) return; // one-shot
-    djingHeroStage.classList.add('about-spin-stage--spinning');
-    djingCategory.classList.add('djing-opened');
-    initAboutAudioGraph();
-  });
-}
-
-/* about page — audio-reactive orb visualizer. Real DOM elements (no image),
-   driven every frame from either live Web Audio frequency data off the
-   site's single shared #bg-audio element, or a gentle idle sine pulse when
-   nothing is playing. Reacts to whatever's currently playing site-wide. */
-let audioGraph = null; // singleton — createMediaElementSource() may only be called once per <audio> ever
+/* about page — shared Web Audio graph, singleton — createMediaElementSource()
+   may only be called once per <audio> element for its entire lifetime.
+   Reused by the djing border visualizer below. */
+let audioGraph = null;
 
 function initAboutAudioGraph(){
   if(audioGraph) {
     if(audioGraph.ctx.state === 'suspended') audioGraph.ctx.resume();
     return audioGraph;
   }
-  if(!audio || typeof AudioContext === 'undefined' && typeof webkitAudioContext === 'undefined') return null;
+  if(!audio || (typeof AudioContext === 'undefined' && typeof webkitAudioContext === 'undefined')) return null;
   try {
     const Ctx = window.AudioContext || window.webkitAudioContext;
     const ctx = new Ctx();
     const source = ctx.createMediaElementSource(audio);
     const analyser = ctx.createAnalyser();
-    analyser.fftSize = 32; // 16 frequency bins, matches ORB_COUNT
+    analyser.fftSize = 64;
     source.connect(analyser);
     analyser.connect(ctx.destination); // critical — without this, audio goes silent
     audioGraph = { ctx, source, analyser, data: new Uint8Array(analyser.frequencyBinCount) };
@@ -451,46 +437,150 @@ function initAboutAudioGraph(){
   return audioGraph;
 }
 
-const ORB_COUNT = 16;
-const aboutVisualizer = document.getElementById('about-visualizer');
-let aboutOrbs = [];
-if(aboutVisualizer){
-  for(let i = 0; i < ORB_COUNT; i++){
-    const orb = document.createElement('div');
-    orb.className = 'about-visualizer-orb';
-    aboutVisualizer.appendChild(orb);
-    aboutOrbs.push(orb);
+/* about page — djing hero vinyl, rendered with Three.js (a real spinning
+   3D disc, not a photo). Built procedurally: a dark cylinder body plus a
+   canvas-generated groove/label texture on its top face. Exposes a single
+   continuous rotation that starts on click and never stops. */
+function createAboutVinyl(mount){
+  if(typeof THREE === 'undefined' || !mount) return null;
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  mount.appendChild(renderer.domElement);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 20);
+  camera.position.set(0, 3.4, 2.3); // looking down at the disc, like a turntable
+  camera.lookAt(0, 0, 0);
+
+  scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+  const key = new THREE.DirectionalLight(0xffffff, 1.1);
+  key.position.set(2.5, 4, 3);
+  scene.add(key);
+  const rim = new THREE.DirectionalLight(0x8fb0ff, 0.6);
+  rim.position.set(-3, -1, -2);
+  scene.add(rim);
+
+  // procedural groove + label texture — drawn on a canvas at runtime, not a shipped image
+  const texCanvas = document.createElement('canvas');
+  texCanvas.width = texCanvas.height = 1024;
+  const tctx = texCanvas.getContext('2d');
+  const c = 512;
+  tctx.fillStyle = '#0a0a0a';
+  tctx.fillRect(0, 0, 1024, 1024);
+  tctx.strokeStyle = 'rgba(255,255,255,0.06)';
+  for(let r = 500; r > 170; r -= 3.2){
+    tctx.beginPath();
+    tctx.arc(c, c, r, 0, Math.PI * 2);
+    tctx.lineWidth = r % 12 < 1 ? 1.4 : 0.6;
+    tctx.stroke();
   }
+  const labelGrad = tctx.createRadialGradient(c, c, 0, c, c, 165);
+  labelGrad.addColorStop(0, '#e8412c');
+  labelGrad.addColorStop(1, '#a82815');
+  tctx.fillStyle = labelGrad;
+  tctx.beginPath();
+  tctx.arc(c, c, 165, 0, Math.PI * 2);
+  tctx.fill();
+  tctx.fillStyle = 'rgba(255,255,255,0.9)';
+  tctx.font = '700 30px Arial, Helvetica, sans-serif';
+  tctx.textAlign = 'center';
+  tctx.fillText('MOKSH', c, c - 4);
+  tctx.font = '400 14px Arial, Helvetica, sans-serif';
+  tctx.fillStyle = 'rgba(255,255,255,0.7)';
+  tctx.fillText('33⅓ RPM', c, c + 24);
+  tctx.fillStyle = '#0a0a0a';
+  tctx.beginPath();
+  tctx.arc(c, c, 10, 0, Math.PI * 2);
+  tctx.fill();
+  const texture = new THREE.CanvasTexture(texCanvas);
+  texture.anisotropy = 4;
+
+  const body = new THREE.Mesh(
+    new THREE.CylinderGeometry(1.55, 1.55, 0.045, 96, 1, false),
+    [
+      new THREE.MeshStandardMaterial({ color: 0x0d0d0d, roughness: 0.45, metalness: 0.15 }),
+      new THREE.MeshStandardMaterial({ map: texture, roughness: 0.35, metalness: 0.1 }),
+      new THREE.MeshStandardMaterial({ color: 0x0d0d0d, roughness: 0.5, metalness: 0.1 }),
+    ]
+  );
+  scene.add(body); // cylinder's flat caps already face up/down (local Y) — matches the top-down camera
+
+  function resize(){
+    // skip while the About page is hidden (mount has zero size then) — sizing
+    // the renderer to a 0/1px buffer and later growing it corrupts the
+    // WebGL render target on some GPUs, leaving the canvas permanently blank
+    const w = mount.clientWidth;
+    const h = mount.clientHeight;
+    if(!w || !h) return;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+  resize();
+  const ro = new ResizeObserver(resize);
+  ro.observe(mount);
+
+  let spinning = false;
+  let idleAngle = 0;
+
+  function tick(){
+    requestAnimationFrame(tick);
+    if(spinning){
+      body.rotation.y += 0.028; // real continuous turntable spin, ~2.4s per rotation
+    } else {
+      idleAngle += 0.0015;
+      body.rotation.y = Math.sin(idleAngle) * 0.12; // gentle idle sway before the click
+    }
+    renderer.render(scene, camera);
+  }
+  tick();
+
+  return {
+    startSpin(){ spinning = true; },
+    resize,
+  };
 }
 
-let aboutOrbClock = 0;
-function renderAboutOrbs(){
-  requestAnimationFrame(renderAboutOrbs);
-  if(!aboutOrbs.length) return;
+const djingHeroVinyl = createAboutVinyl(document.getElementById('djing-hero-vinyl'));
 
-  const playing = audioGraph && audio && !audio.paused;
-
-  if(playing){
-    audioGraph.analyser.getByteFrequencyData(audioGraph.data);
-    aboutOrbs.forEach((orb, i) => {
-      const level = audioGraph.data[i] / 255; // 0..1
-      const scale = 0.6 + level * 1.8;
-      const glow = 4 + level * 22;
-      orb.style.transform = `scale(${scale.toFixed(3)})`;
-      orb.style.boxShadow = `0 0 ${glow.toFixed(1)}px ${(glow / 3).toFixed(1)}px rgba(255,255,255,${(0.35 + level * 0.5).toFixed(2)})`;
-      orb.style.opacity = (0.55 + level * 0.45).toFixed(2);
-    });
-  } else {
-    aboutOrbClock += 0.045;
-    aboutOrbs.forEach((orb, i) => {
-      const phase = aboutOrbClock + i * 0.4;
-      const pulse = (Math.sin(phase) + 1) / 2; // 0..1
-      const scale = 0.75 + pulse * 0.4;
-      const glow = 5 + pulse * 7;
-      orb.style.transform = `scale(${scale.toFixed(3)})`;
-      orb.style.boxShadow = `0 0 ${glow.toFixed(1)}px ${(glow / 3).toFixed(1)}px rgba(255,255,255,0.35)`;
-      orb.style.opacity = (0.5 + pulse * 0.25).toFixed(2);
-    });
-  }
+/* about page — djing hero reveal: click the giant vinyl once, it starts
+   spinning for real and docks aside while the bio + mix gallery slide up.
+   CSS drives the shrink/dock/reveal sequence via the .djing-opened class —
+   this handler flips that state, starts the vinyl spinning, and starts
+   the audio graph (a genuine user gesture, required for autoplay policy). */
+const djingHeroBtn = document.getElementById('djing-hero-btn');
+const djingCategory = djingHeroBtn ? djingHeroBtn.closest('.about-category') : null;
+if(djingHeroBtn && djingCategory){
+  djingHeroBtn.addEventListener('click', () => {
+    if(djingCategory.classList.contains('djing-opened')) return; // one-shot
+    if(djingHeroVinyl) djingHeroVinyl.startSpin();
+    djingCategory.classList.add('djing-opened');
+    initAboutAudioGraph();
+  });
 }
-if(aboutOrbs.length) renderAboutOrbs();
+
+/* about page — audio-reactive border around the whole DJing section. No
+   per-orb DOM elements: just two CSS custom properties re-written on the
+   section every frame, read by .about-djing-border's box-shadow. Reacts to
+   whatever's playing on the shared #bg-audio element (or idles gently). */
+if(djingCategory){
+  let borderClock = 0;
+  (function renderDjingBorder(){
+    requestAnimationFrame(renderDjingBorder);
+    const playing = audioGraph && audio && !audio.paused;
+    let level;
+    if(playing){
+      audioGraph.analyser.getByteFrequencyData(audioGraph.data);
+      let sum = 0;
+      for(let i = 0; i < audioGraph.data.length; i++) sum += audioGraph.data[i];
+      level = (sum / audioGraph.data.length) / 255; // 0..1 average
+    } else {
+      borderClock += 0.03;
+      level = (Math.sin(borderClock) + 1) / 2 * 0.4; // gentle idle pulse, never fully off
+    }
+    djingCategory.style.setProperty('--djing-border-w', `${(2 + level * 3).toFixed(2)}px`);
+    djingCategory.style.setProperty('--djing-border-a', (0.18 + level * 0.55).toFixed(2));
+    djingCategory.style.setProperty('--djing-glow', `${(8 + level * 34).toFixed(1)}px`);
+  })();
+}
