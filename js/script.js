@@ -406,3 +406,91 @@ window.addEventListener('scroll', () => {
   aboutVinylRaf = requestAnimationFrame(updateAboutVinylSpin);
 });
 updateAboutVinylSpin();
+
+/* about page — djing hero reveal: click the giant vinyl once, it starts
+   spinning for real and docks aside while the bio + mix gallery slide up.
+   CSS drives the entire shrink/dock/reveal sequence via the .djing-opened
+   class — this handler just flips the state and starts the audio graph. */
+const djingHeroBtn = document.getElementById('djing-hero-btn');
+const djingHeroStage = document.getElementById('djing-hero-stage');
+const djingCategory = djingHeroBtn ? djingHeroBtn.closest('.about-category') : null;
+if(djingHeroBtn && djingCategory){
+  djingHeroBtn.addEventListener('click', () => {
+    if(djingCategory.classList.contains('djing-opened')) return; // one-shot
+    djingHeroStage.classList.add('about-spin-stage--spinning');
+    djingCategory.classList.add('djing-opened');
+    initAboutAudioGraph();
+  });
+}
+
+/* about page — audio-reactive orb visualizer. Real DOM elements (no image),
+   driven every frame from either live Web Audio frequency data off the
+   site's single shared #bg-audio element, or a gentle idle sine pulse when
+   nothing is playing. Reacts to whatever's currently playing site-wide. */
+let audioGraph = null; // singleton — createMediaElementSource() may only be called once per <audio> ever
+
+function initAboutAudioGraph(){
+  if(audioGraph) {
+    if(audioGraph.ctx.state === 'suspended') audioGraph.ctx.resume();
+    return audioGraph;
+  }
+  if(!audio || typeof AudioContext === 'undefined' && typeof webkitAudioContext === 'undefined') return null;
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    const ctx = new Ctx();
+    const source = ctx.createMediaElementSource(audio);
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 32; // 16 frequency bins, matches ORB_COUNT
+    source.connect(analyser);
+    analyser.connect(ctx.destination); // critical — without this, audio goes silent
+    audioGraph = { ctx, source, analyser, data: new Uint8Array(analyser.frequencyBinCount) };
+    if(ctx.state === 'suspended') ctx.resume();
+  } catch(e) {
+    audioGraph = null;
+  }
+  return audioGraph;
+}
+
+const ORB_COUNT = 16;
+const aboutVisualizer = document.getElementById('about-visualizer');
+let aboutOrbs = [];
+if(aboutVisualizer){
+  for(let i = 0; i < ORB_COUNT; i++){
+    const orb = document.createElement('div');
+    orb.className = 'about-visualizer-orb';
+    aboutVisualizer.appendChild(orb);
+    aboutOrbs.push(orb);
+  }
+}
+
+let aboutOrbClock = 0;
+function renderAboutOrbs(){
+  requestAnimationFrame(renderAboutOrbs);
+  if(!aboutOrbs.length) return;
+
+  const playing = audioGraph && audio && !audio.paused;
+
+  if(playing){
+    audioGraph.analyser.getByteFrequencyData(audioGraph.data);
+    aboutOrbs.forEach((orb, i) => {
+      const level = audioGraph.data[i] / 255; // 0..1
+      const scale = 0.6 + level * 1.8;
+      const glow = 4 + level * 22;
+      orb.style.transform = `scale(${scale.toFixed(3)})`;
+      orb.style.boxShadow = `0 0 ${glow.toFixed(1)}px ${(glow / 3).toFixed(1)}px rgba(255,255,255,${(0.35 + level * 0.5).toFixed(2)})`;
+      orb.style.opacity = (0.55 + level * 0.45).toFixed(2);
+    });
+  } else {
+    aboutOrbClock += 0.045;
+    aboutOrbs.forEach((orb, i) => {
+      const phase = aboutOrbClock + i * 0.4;
+      const pulse = (Math.sin(phase) + 1) / 2; // 0..1
+      const scale = 0.75 + pulse * 0.4;
+      const glow = 5 + pulse * 7;
+      orb.style.transform = `scale(${scale.toFixed(3)})`;
+      orb.style.boxShadow = `0 0 ${glow.toFixed(1)}px ${(glow / 3).toFixed(1)}px rgba(255,255,255,0.35)`;
+      orb.style.opacity = (0.5 + pulse * 0.25).toFixed(2);
+    });
+  }
+}
+if(aboutOrbs.length) renderAboutOrbs();

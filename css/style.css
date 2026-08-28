@@ -1202,6 +1202,106 @@ footer{
   text-transform:lowercase;
 }
 
+/* djing hero-reveal: a giant vinyl fills the section; clicking it starts a
+   real continuous spin and docks it aside while the rest of the content
+   slides up. One-shot — see the click handler's guard in js/script.js. */
+.about-djing-hero{
+  position:relative;
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:opacity 0.9s var(--ease);
+}
+.about-djing-hero-btn{
+  background:none;
+  border:none;
+  padding:0;
+  cursor:pointer;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:28px;
+}
+.about-spin-wrap--hero{perspective:1400px;}
+.about-spin-stage--hero{
+  width:min(70vh, 70vw, 640px);
+  height:min(70vh, 70vw, 640px);
+}
+.about-spin--hero{transition:filter 0.4s var(--ease-fast);}
+.about-djing-hero-btn:hover .about-spin--hero{
+  filter:drop-shadow(0 20px 50px rgba(0,0,0,0.65)) brightness(1.12);
+}
+.about-djing-hero-cue{
+  font-family:var(--mono);
+  font-size:12px;
+  letter-spacing:0.1em;
+  color:#999;
+  animation:about-cue-bob 1.8s var(--ease) infinite;
+  transition:opacity 0.4s var(--ease-fast);
+}
+
+/* continuous spin, added to the parent stage on click — deliberately not
+   applied to .about-spin itself, since updateAboutVinylSpin() keeps writing
+   an inline rotateY() transform to that element every scroll frame; putting
+   this keyframe on a different element in the chain lets both rotations
+   compose instead of fighting over the same CSS property */
+.about-spin-stage--spinning{
+  animation:about-vinyl-continuous-spin 2.4s linear infinite;
+}
+@keyframes about-vinyl-continuous-spin{
+  from{transform:rotate(0deg);}
+  to{transform:rotate(360deg);}
+}
+
+.djing.djing-opened .about-djing-hero{
+  position:absolute;
+  top:0; left:50%;
+  min-height:0;
+  animation:about-djing-hero-dock 1.1s var(--ease) forwards;
+}
+@keyframes about-djing-hero-dock{
+  from{transform:translate(-50%, 0) scale(1); opacity:1;}
+  to{transform:translate(calc(-50vw + 160px), 40px) scale(0.42); opacity:0.85;}
+}
+.djing.djing-opened .about-djing-hero-cue{opacity:0;}
+
+.about-djing-content{
+  opacity:0;
+  transform:translateY(48px);
+  max-height:0;
+  overflow:hidden;
+  pointer-events:none;
+  transition:opacity 0.9s var(--ease) 0.45s, transform 0.9s var(--ease) 0.45s, max-height 0s linear 1.4s;
+}
+.djing.djing-opened .about-djing-content{
+  opacity:1;
+  transform:translateY(0);
+  max-height:4000px;
+  pointer-events:auto;
+  transition:opacity 0.9s var(--ease) 0.45s, transform 0.9s var(--ease) 0.45s;
+}
+
+/* audio-reactive orb visualizer — real DOM elements, driven per-frame by
+   js/script.js from either live Web Audio frequency data or a gentle idle
+   sine pulse when nothing is playing. No image/GIF involved. */
+.about-visualizer{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+  width:100%;
+}
+.about-visualizer-orb{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  background:#fff;
+  mix-blend-mode:screen;
+  box-shadow:0 0 6px 2px rgba(255,255,255,0.45);
+  transition:transform 0.05s linear, box-shadow 0.05s linear, opacity 0.05s linear;
+}
+
 @media(max-width:720px){
   .about-banner-title{font-size:48px;}
   .about-intro-grid{grid-template-columns:1fr; text-align:center;}
@@ -1212,6 +1312,19 @@ footer{
     transform:none;
     width:140px;
     margin:32px auto 0;
+  }
+  .about-spin-stage--hero{width:min(60vh, 80vw, 320px); height:min(60vh, 80vw, 320px);}
+  .djing.djing-opened .about-djing-hero{
+    position:relative;
+    top:auto; left:auto;
+    animation:none;
+    display:none;
+  }
+  .about-djing-content{
+    transition:opacity 0.6s var(--ease), max-height 0s linear 0.6s;
+  }
+  .djing.djing-opened .about-djing-content{
+    transition:opacity 0.6s var(--ease);
   }
 }
 

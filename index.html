@@ -393,9 +393,21 @@
       </div>
     </section>
 
-    <section class="about-category" data-category="djing">
+    <section class="about-category djing" data-category="djing">
+      <div class="about-djing-hero" id="djing-hero">
+        <button class="about-djing-hero-btn" id="djing-hero-btn" type="button" aria-label="play and reveal">
+          <div class="about-spin-wrap about-spin-wrap--hero">
+            <div class="about-spin-stage about-spin-stage--hero" id="djing-hero-stage">
+              <img class="about-spin about-spin--hero" src="assets/about/vinyl-record.jpg" alt="vinyl" onerror="this.style.display='none'">
+            </div>
+          </div>
+          <span class="about-djing-hero-cue">click to spin ↻</span>
+        </button>
+      </div>
+
+      <div class="about-djing-content" id="djing-content">
       <div class="about-float-dock">
-        <img src="assets/about/soundwave.jpg" alt="" onerror="this.parentElement.style.display='none'">
+        <div class="about-visualizer" id="about-visualizer" data-style="orbs" aria-hidden="true"></div>
       </div>
 
       <div class="wrap wrap-wide">
@@ -468,6 +480,7 @@
             <div class="about-mix-meta">afrobeat · 2026</div>
           </div>
         </div>
+      </div>
       </div>
     </section>
 
