@@ -590,3 +590,87 @@ if(djingCategory){
     djingCategory.style.setProperty('--djing-glow', `${(borderLevel * 140).toFixed(1)}px`);
   })();
 }
+
+/* about page — DJing mix player. Clicking a mix's vinyl opens a full
+   overlay: the vinyl arrives centered and starts spinning, the mix
+   itself starts playing (ducking the background track via the same
+   generic play/pause/ended hook the Cinematography reels use — #mix-audio
+   is just another non-background media element, so nothing new is needed
+   there), the FL Studio clip slides in from the side a beat later, then
+   the vinyl docks to the bottom-left corner — still spinning — while the
+   rest of the overlay fades so the page is usable again. A card's
+   data-mix-src/data-fl-src are empty placeholders until real files exist;
+   the visual sequence still plays either way, it just skips whichever
+   media isn't there yet. */
+const mixPlayer = document.getElementById('mix-player');
+const mixPlayerVinyl = document.getElementById('mix-player-vinyl');
+const mixPlayerFlVideo = document.getElementById('mix-player-flvideo-el');
+const mixPlayerTitle = document.getElementById('mix-player-title');
+const mixPlayerMeta = document.getElementById('mix-player-meta');
+const mixPlayerClose = document.getElementById('mix-player-close');
+const mixAudio = document.getElementById('mix-audio');
+
+let mixPlayerTimers = [];
+function clearMixPlayerTimers(){
+  mixPlayerTimers.forEach(t => clearTimeout(t));
+  mixPlayerTimers = [];
+}
+
+function openMixPlayer(card){
+  clearMixPlayerTimers();
+  const src = card.dataset.mixSrc;
+  const flSrc = card.dataset.flSrc;
+  mixPlayerTitle.textContent = card.dataset.mixTitle || '';
+  mixPlayerMeta.textContent = card.dataset.mixMeta || '';
+
+  mixPlayer.hidden = false;
+  mixPlayer.classList.remove('docked', 'flvideo-visible');
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => mixPlayer.classList.add('opened'));
+  });
+  mixPlayerVinyl.classList.add('spinning');
+
+  if(src){
+    mixAudio.src = src;
+    mixAudio.currentTime = 0;
+    mixAudio.play().catch(() => {}); // triggers the generic ducking hook — background track pauses
+  }
+
+  mixPlayerTimers.push(setTimeout(() => {
+    if(flSrc){
+      mixPlayerFlVideo.src = flSrc;
+      mixPlayerFlVideo.currentTime = 0;
+      mixPlayerFlVideo.play().catch(() => {});
+    }
+    mixPlayer.classList.add('flvideo-visible');
+  }, 900));
+
+  mixPlayerTimers.push(setTimeout(() => {
+    mixPlayer.classList.add('docked');
+  }, 2200));
+}
+
+function closeMixPlayer(){
+  clearMixPlayerTimers();
+  mixPlayer.classList.remove('opened', 'docked', 'flvideo-visible');
+  mixPlayerVinyl.classList.remove('spinning');
+  mixAudio.pause(); // fires 'pause' — background track resumes via the generic ducking hook
+  mixPlayerFlVideo.pause();
+  setTimeout(() => { mixPlayer.hidden = true; }, 400);
+}
+
+document.querySelectorAll('.about-mix-card[data-mix]').forEach(card => {
+  card.addEventListener('click', () => openMixPlayer(card));
+});
+mixPlayerClose.addEventListener('click', (e) => {
+  e.stopPropagation();
+  closeMixPlayer();
+});
+// clicking the docked mini vinyl re-opens the full view instead of doing nothing
+mixPlayerVinyl.addEventListener('click', () => {
+  if(mixPlayer.classList.contains('docked')){
+    mixPlayer.classList.remove('docked');
+    mixPlayer.classList.add('opened', 'flvideo-visible');
+  }
+});
+mixAudio.addEventListener('ended', () => closeMixPlayer());
