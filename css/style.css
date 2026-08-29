@@ -591,15 +591,16 @@ section{margin-top:80px;}
    video, sits over the bottom edge of the media */
 .lightbox-video-controls{
   position:absolute;
-  left:50%;
-  bottom:20px;
-  transform:translateX(-50%);
+  left:16px;
+  right:16px;
+  bottom:16px;
   z-index:2;
   display:flex;
   align-items:center;
-  padding:8px;
+  gap:12px;
+  padding:8px 14px 8px 8px;
   border-radius:999px;
-  background:rgba(20,20,20,0.45);
+  background:rgba(20,20,20,0.5);
   backdrop-filter:blur(14px);
   -webkit-backdrop-filter:blur(14px);
   border:1px solid rgba(255,255,255,0.18);
@@ -607,13 +608,14 @@ section{margin-top:80px;}
 }
 .lightbox-video-controls[hidden]{display:none;}
 .lightbox-video-toggle{
-  width:36px;
-  height:36px;
+  flex-shrink:0;
+  width:34px;
+  height:34px;
   border-radius:50%;
   background:rgba(255,255,255,0.12);
   border:1px solid rgba(255,255,255,0.25);
   color:#fff;
-  font-size:13px;
+  font-size:12px;
   cursor:pointer;
   display:flex;
   align-items:center;
@@ -621,6 +623,41 @@ section{margin-top:80px;}
   transition:background 0.2s var(--ease-fast);
 }
 .lightbox-video-toggle:hover{background:rgba(255,255,255,0.22);}
+
+/* the "small scroll bar at the bottom of the video" — a native range
+   input restyled into a slim glass-pill scrubber, shared look with
+   .mini-seek below */
+.lightbox-video-seek{
+  flex:1;
+  -webkit-appearance:none;
+  appearance:none;
+  height:4px;
+  border-radius:999px;
+  background:rgba(255,255,255,0.25);
+  cursor:pointer;
+  outline:none;
+}
+.lightbox-video-seek::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  width:13px; height:13px;
+  border-radius:50%;
+  background:#fff;
+  cursor:pointer;
+  box-shadow:0 0 0 3px rgba(255,255,255,0.15);
+}
+.lightbox-video-seek::-moz-range-thumb{
+  width:13px; height:13px;
+  border-radius:50%;
+  background:#fff;
+  border:none;
+  cursor:pointer;
+  box-shadow:0 0 0 3px rgba(255,255,255,0.15);
+}
+.lightbox-video-seek::-moz-range-track{
+  height:4px;
+  border-radius:999px;
+  background:rgba(255,255,255,0.25);
+}
 .lightbox-caption{margin-top:18px;}
 .lightbox-title{font-size:18px; color:var(--text);}
 .lightbox-medium{
@@ -1032,6 +1069,42 @@ footer{
   margin-top:3px;
 }
 
+/* lets the user scrub through the background track, same restyled
+   range-input treatment as .lightbox-video-seek */
+.mini-seek{
+  display:block;
+  width:100%;
+  margin-top:16px;
+  -webkit-appearance:none;
+  appearance:none;
+  height:4px;
+  border-radius:999px;
+  background:rgba(240, 237, 230, 0.2);
+  cursor:pointer;
+  outline:none;
+}
+.mini-seek::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  width:12px; height:12px;
+  border-radius:50%;
+  background:var(--text);
+  cursor:pointer;
+  box-shadow:0 0 0 3px rgba(240, 237, 230, 0.15);
+}
+.mini-seek::-moz-range-thumb{
+  width:12px; height:12px;
+  border-radius:50%;
+  background:var(--text);
+  border:none;
+  cursor:pointer;
+  box-shadow:0 0 0 3px rgba(240, 237, 230, 0.15);
+}
+.mini-seek::-moz-range-track{
+  height:4px;
+  border-radius:999px;
+  background:rgba(240, 237, 230, 0.2);
+}
+
 .mini-controls{
   display:flex;
   align-items:center;
@@ -1355,7 +1428,7 @@ footer{
    the clicked card's real <img> into #travel-viewer-photo (a fixed,
    larger, left-of-center slot) and back again on close; only a single
    .opened class drives fade/slide-in here since there's no intermediate
-   "docked" state like the DJing mix player. */
+   state like the DJing mix player's .side-by-side. */
 .travel-viewer{position:fixed; inset:0; z-index:960;}
 .travel-viewer[hidden]{display:none;}
 .travel-viewer-backdrop{
@@ -1486,22 +1559,28 @@ footer{
    vinyl. js/script.js FLIP-moves the card's own .mix-vinyl-icon into
    #mix-player-vinyl (and back again on close) and drives states via
    classes on .mix-player:
-     .opened        — vinyl has arrived, large and centered, not yet
-                       spinning; .mix-player-hint ("click to play") shows
-     .playing        — added when the user clicks the vinyl: spin starts,
-                       the mix itself starts (ducking the background
-                       track via the same generic play/pause/ended
-                       delegation the Cinematography reels use — #mix-
-                       audio is just another non-background element)
-     .flvideo-visible — added ~900ms into .playing, slides the FL Studio
-                       clip in from the side
-     .docked         — added 2s into .playing: vinyl shrinks to the
-                       bottom-left corner and keeps spinning; the
-                       backdrop/info/FL-video fade so the page is usable
-                       again, but the vinyl itself stays fully visible
-   Clicking the docked vinyl (or the ✕, or the backdrop before playback
-   starts) closes the player — audio/video stop, and the vinyl FLIPs
-   smoothly back into the exact card slot it came from. */
+     .opened          — vinyl has arrived, large and centered, not yet
+                        spinning; .mix-player-hint ("click to play")
+                        shows, centered near the top
+     .playing         — added when the user clicks the vinyl: spin
+                        starts, the mix itself starts (ducking the
+                        background track via the same generic play/
+                        pause/ended delegation the Cinematography reels
+                        use — #mix-audio is just another non-background
+                        element)
+     .side-by-side    — added 2s into .playing (after the vinyl has
+                        been visibly spinning in place that whole time):
+                        the vinyl shrinks and moves to the left, the FL
+                        Studio clip slides in from the right to take the
+                        spot the vinyl used to occupy. Both stay fully
+                        visible together as the overlay's two main
+                        components — this never fades to a mini corner
+                        icon or lets the page become interactive again;
+                        it's a still-modal two-up "now playing" view for
+                        as long as the mix keeps going.
+   Only the ✕ (or the backdrop, before playback starts) closes the
+   player — audio/video stop, and the vinyl FLIPs smoothly back into the
+   exact card slot it came from. */
 .mix-player{position:fixed; inset:0; z-index:950;}
 .mix-player[hidden]{display:none;}
 .mix-player-backdrop{
@@ -1513,7 +1592,6 @@ footer{
   transition:opacity 0.5s var(--ease);
 }
 .mix-player.opened .mix-player-backdrop{opacity:1; pointer-events:auto;}
-.mix-player.docked .mix-player-backdrop{opacity:0; pointer-events:none;}
 
 .mix-player-stage{position:relative; width:100%; height:100%; pointer-events:none;}
 
@@ -1536,8 +1614,8 @@ footer{
 
 /* the landing slot the real vinyl icon is FLIP-moved into. top/left here
    are always the box's own top-left corner (never a self-centering -50%
-   transform mixed with viewport-relative offsets — that combination is
-   what silently pushed the docked state off-screen in an earlier pass) */
+   transform mixed with viewport-relative offsets — that combination
+   silently pushed an earlier "dock to the corner" version off-screen) */
 .mix-player-vinyl{
   position:fixed;
   top:calc(50% - 210px);
@@ -1553,22 +1631,25 @@ footer{
   pointer-events:none;
 }
 .mix-player-vinyl .mix-vinyl-icon{width:100%; height:100%;}
-/* pointer-events:auto here (not just on .docked) is what makes the vinyl
-   clickable to actually start playback — without it, clicks on the
-   "opened, not yet playing" vinyl fell through to the backdrop behind it
-   and closed the player instead, which looked like clicking the vinyl
-   just sent it back without ever reaching the docked corner */
+/* pointer-events:auto here is what makes the vinyl clickable to actually
+   start playback — without it, clicks on the "opened, not yet playing"
+   vinyl fell through to the backdrop behind it and closed the player
+   instead, which looked like clicking the vinyl just sent it back */
 .mix-player.opened .mix-player-vinyl{opacity:1; pointer-events:auto; cursor:pointer;}
+/* the spin is a plain rotation of the icon INSIDE its own box — the box
+   itself (this element) is what moves/resizes between states, so the
+   icon always turns in place around its own center, never sweeping
+   through an arc the way it would if this box's own position changed
+   mid-spin via a transform sharing the same property */
 .mix-player-vinyl.spinning .mix-vinyl-icon{animation:mix-vinyl-spin 2.4s linear infinite;}
 @keyframes mix-vinyl-spin{from{transform:rotate(0deg);} to{transform:rotate(360deg);}}
-.mix-player.docked .mix-player-vinyl{
-  top:calc(100vh - 142px);
-  left:32px;
-  width:110px;
-  height:110px;
-  opacity:1;
-  pointer-events:auto;
-  cursor:pointer;
+.mix-player.side-by-side .mix-player-vinyl{
+  top:calc(50% - 130px);
+  left:calc(50% - 380px);
+  width:260px;
+  height:260px;
+  max-width:34vw;
+  max-height:34vw;
 }
 
 /* subtle invitation to start playback, shown only in the brief window
@@ -1594,29 +1675,33 @@ footer{
    jarring hole, while its vinyl is off playing in the overlay */
 .about-mix-cover--vinyl.mix-vinyl-borrowed{background:rgba(255,255,255,0.03);}
 
+/* takes over the vinyl's old spot once .side-by-side kicks in — no
+   forced aspect-ratio, same "never crop the source" approach as the
+   Cinematography reels, since a screen recording's real shape isn't
+   known ahead of time */
 .mix-player-flvideo{
   position:absolute;
   top:50%;
-  left:calc(50% + 260px);
-  width:320px;
-  max-width:38vw;
-  aspect-ratio:16/9;
-  border-radius:10px;
+  left:calc(50% - 40px);
+  width:600px;
+  max-width:56vw;
+  max-height:64vh;
+  border-radius:12px;
   overflow:hidden;
-  box-shadow:0 20px 50px rgba(0,0,0,0.6);
+  background:#050505;
+  box-shadow:0 30px 70px rgba(0,0,0,0.6);
   opacity:0;
-  transform:translateY(-50%) translateX(50px);
+  transform:translateY(-50%) translateX(60px);
   transition:opacity 0.6s var(--ease), transform 0.6s var(--ease);
   pointer-events:none;
 }
-.mix-player-flvideo video{width:100%; height:100%; object-fit:cover; display:block;}
+.mix-player-flvideo video{width:100%; height:auto; max-height:64vh; object-fit:contain; display:block;}
 .mix-player.flvideo-visible .mix-player-flvideo{opacity:1; transform:translateY(-50%) translateX(0);}
-.mix-player.docked .mix-player-flvideo{opacity:0; transform:translateY(-50%) translateX(50px);}
 
 .mix-player-info{
   position:absolute;
   left:50%;
-  bottom:10%;
+  bottom:6%;
   transform:translateX(-50%);
   text-align:center;
   opacity:0;
@@ -1624,16 +1709,24 @@ footer{
   pointer-events:none;
 }
 .mix-player.opened .mix-player-info{opacity:1;}
-.mix-player.docked .mix-player-info{opacity:0;}
 .mix-player-title{font-family:Arial, Helvetica, sans-serif; font-weight:700; font-size:20px; color:#fff;}
 .mix-player-meta{font-family:var(--mono); font-size:12px; color:#999; margin-top:6px; text-transform:lowercase;}
 
+@media(max-width:900px){
+  .mix-player.side-by-side .mix-player-vinyl{
+    top:calc(50% - 240px);
+    left:calc(50% - 90px);
+    width:180px;
+    height:180px;
+    max-width:50vw;
+    max-height:50vw;
+  }
+  .mix-player-flvideo{left:50%; top:calc(50% + 60px); width:80vw; max-width:80vw; transform:translate(-50%, 0) translateY(30px);}
+  .mix-player.flvideo-visible .mix-player-flvideo{transform:translate(-50%, 0) translateY(0);}
+}
+
 @media(max-width:720px){
-  .mix-player-flvideo{left:50%; top:auto; bottom:16%; transform:translateX(-50%) translateY(30px); width:70vw; max-width:70vw;}
-  .mix-player.flvideo-visible .mix-player-flvideo{transform:translateX(-50%) translateY(0);}
-  .mix-player.docked .mix-player-flvideo{transform:translateX(-50%) translateY(30px);}
   .mix-player-vinyl{top:calc(50% - 140px); left:calc(50% - 140px); width:280px; height:280px;}
-  .mix-player.docked .mix-player-vinyl{top:calc(100vh - 122px); left:24px; width:90px; height:90px;}
 }
 
 @media(max-width:720px){

@@ -130,6 +130,7 @@
     <div class="mini-art"><img id="mini-art-img" src="" alt=""></div>
     <div class="mini-expanded-title" id="mini-expanded-title">—</div>
     <div class="mini-expanded-artist" id="mini-expanded-artist"></div>
+    <input type="range" class="mini-seek" id="mini-seek" min="0" max="100" step="0.1" value="0" aria-label="seek">
     <div class="mini-controls">
       <button class="mini-control-btn" id="mini-prev" type="button" aria-label="previous track">⏮</button>
       <button class="mini-control-btn mini-control-play" id="mini-play" type="button" aria-label="play or pause">❚❚</button>
@@ -500,7 +501,6 @@
               <video muted loop playsinline preload="metadata">
                 <source src="assets/about/introduction.mp4" type="video/mp4">
               </video>
-              <button class="about-mix-play" type="button" aria-label="play video">▶</button>
             </div>
             <div class="about-mix-title">introduction</div>
             <div class="about-mix-meta">short film · 2026</div>
@@ -510,7 +510,6 @@
               <video muted loop playsinline preload="metadata">
                 <source src="assets/about/claude-cinematic.mp4" type="video/mp4">
               </video>
-              <button class="about-mix-play" type="button" aria-label="play video">▶</button>
             </div>
             <div class="about-mix-title">claude</div>
             <div class="about-mix-meta">cinematic · 2026</div>
@@ -632,7 +631,7 @@
         <div class="about-intro-copy about-intro-copy--center">
           <div class="section-title">what's ahead</div>
           <p class="about-lede">
-            add what you want to do in the future here — goals, projects, places, skills. replace this placeholder with the real list.
+            eventually, I want to start a company — not alone, but with co-founders who push my thinking and cover the gaps I can't. Getting there means putting myself out there more: going to events, striking up conversations, staying in touch with people I find interesting instead of letting connections fade after one good talk. Building a real network isn't a side project, it's the groundwork the startup will actually stand on.
           </p>
         </div>
       </div>
@@ -673,6 +672,7 @@
     <div class="lightbox-media" id="lightbox-media"></div>
     <div class="lightbox-video-controls" id="lightbox-video-controls" hidden>
       <button class="lightbox-video-toggle" id="lightbox-video-toggle" type="button" aria-label="play or pause">▶</button>
+      <input type="range" class="lightbox-video-seek" id="lightbox-video-seek" min="0" max="100" step="0.1" value="0" aria-label="seek">
     </div>
     <div class="lightbox-caption">
       <div class="lightbox-title" id="lightbox-title"></div>

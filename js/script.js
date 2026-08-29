@@ -52,6 +52,7 @@ const miniExpandedArtist = document.getElementById('mini-expanded-artist');
 const miniPrevBtn = document.getElementById('mini-prev');
 const miniPlayBtn = document.getElementById('mini-play');
 const miniNextBtn = document.getElementById('mini-next');
+const miniSeek = document.getElementById('mini-seek');
 
 function showMusicGate(){
   if(sessionStorage.getItem('gate-decided') === '1') return;
@@ -103,6 +104,16 @@ function playTrackAtIndex(i, autoplay){
 audio.addEventListener('ended', () => {
   if(currentTrackIndex >= 0) playTrackAtIndex(currentTrackIndex + 1, true);
 });
+
+// lets the user scrub through the background track from the mini player
+function syncMiniSeek(){
+  if(currentTrackIndex < 0 || !audio.duration) return;
+  miniSeek.max = audio.duration;
+  if(!miniSeek.matches(':active')) miniSeek.value = audio.currentTime;
+}
+audio.addEventListener('loadedmetadata', syncMiniSeek);
+audio.addEventListener('timeupdate', syncMiniSeek);
+miniSeek.addEventListener('input', () => { audio.currentTime = miniSeek.value; });
 
 function updateMiniPlayerInfo(){
   if(currentTrackIndex < 0) return; // "no track" pill state has its own copy, set separately
@@ -407,6 +418,7 @@ const lightboxClose = document.getElementById('lightbox-close');
 const lightboxBackdrop = document.getElementById('lightbox-backdrop');
 const lightboxVideoControls = document.getElementById('lightbox-video-controls');
 const lightboxVideoToggle = document.getElementById('lightbox-video-toggle');
+const lightboxVideoSeek = document.getElementById('lightbox-video-seek');
 
 function openLightboxWith(mediaSourceEl, title, medium, desc){
   const media = mediaSourceEl.cloneNode(true);
@@ -415,10 +427,10 @@ function openLightboxWith(mediaSourceEl, title, medium, desc){
     video.removeAttribute('loop');
     video.removeAttribute('muted');
     video.muted = false;
-    // no native controls — the glass play/pause bar below drives it instead,
-    // which also lets .lightbox-media size to a real 16:9 box instead of
-    // inheriting the photo lightbox's 4:3 (that mismatch was squeezing
-    // these videos into a near-square crop)
+    // no native controls — the glass play/pause + seek bar below drives it
+    // instead, which also lets .lightbox-media size to its real natural
+    // shape instead of inheriting the photo lightbox's fixed aspect-ratio
+    // (that mismatch was squeezing these videos into a crop)
   }
   lightboxMedia.innerHTML = '';
   lightboxMedia.appendChild(media);
@@ -440,6 +452,16 @@ function openLightboxWith(mediaSourceEl, title, medium, desc){
       if(video.paused) video.play().catch(() => {});
       else video.pause();
     };
+
+    const syncSeek = () => {
+      if(!video.duration) return;
+      lightboxVideoSeek.max = video.duration;
+      if(!lightboxVideoSeek.matches(':active')) lightboxVideoSeek.value = video.currentTime;
+    };
+    lightboxVideoSeek.value = 0;
+    video.addEventListener('loadedmetadata', syncSeek);
+    video.addEventListener('timeupdate', syncSeek);
+    lightboxVideoSeek.oninput = () => { video.currentTime = lightboxVideoSeek.value; };
   }
 }
 
@@ -669,13 +691,17 @@ if(djingCategory){
    not yet spinning, with a "click to play" hint. Clicking the vinyl
    again starts the mix (ducking the background track via the same
    generic play/pause/ended hook the Cinematography reels use — #mix-
-   audio is just another non-background element) and starts the spin;
-   the FL Studio clip slides in from the side a beat later; after 2s of
-   spinning the vinyl docks to the bottom-left corner, still spinning,
-   while the rest of the overlay fades so the page is usable again.
-   Closing (✕, the backdrop, or clicking the docked vinyl) stops
-   everything and FLIPs the vinyl smoothly back into the exact card slot
-   it came from — the card never stays empty, it just briefly lends its
+   audio is just another non-background element) and starts the spin —
+   the vinyl visibly turns in place for a full 2 seconds before anything
+   else happens. The FL Studio clip slides in from the side ~900ms in;
+   at the 2s mark the vinyl shrinks and shifts to the left while the FL
+   clip grows into the spot the vinyl used to fill — both stay fully
+   visible together as the overlay's two main components (.side-by-side)
+   for as long as the mix plays; this never fades to a mini corner icon
+   or lets the page become interactive again. Only the ✕ (or the
+   backdrop, before playback starts) closes the player — audio/video
+   stop, and the vinyl FLIPs smoothly back into the exact card slot it
+   came from, so the card never stays empty, it just briefly lends its
    vinyl out. data-mix-src/data-fl-src are empty placeholders until real
    files exist; the visual sequence still plays either way, it just
    skips whichever media isn't there yet. */
@@ -719,6 +745,13 @@ function flipInto(el, newParent){
       el.style.transform = 'none';
     });
   });
+  // transformOrigin:'top left' above was only ever needed for this one
+  // FLIP animation's own math — left set, it makes any LATER transform
+  // (a continuous spin, say) rotate around the element's corner instead
+  // of its center, sweeping it through a wide circular arc instead of
+  // turning in place. Clear it back to the CSS default once the FLIP
+  // transition has actually finished.
+  setTimeout(() => { el.style.transformOrigin = ''; }, 950);
 }
 
 let activeMixCard = null;
@@ -736,7 +769,7 @@ function openMixPlayer(card){
   mixPlayerMeta.textContent = card.dataset.mixMeta || '';
 
   mixPlayer.hidden = false;
-  mixPlayer.classList.remove('docked', 'flvideo-visible', 'playing');
+  mixPlayer.classList.remove('side-by-side', 'flvideo-visible', 'playing');
 
   // move the real vinyl icon out of the card and into the overlay slot —
   // it grows from the card's own on-screen size into the big centered one
@@ -773,14 +806,14 @@ function startMixPlayback(){
   // "the vinyl will spin for 2 seconds and then shrink" — counted from
   // when it actually starts spinning, not from when the card was clicked
   mixPlayerTimers.push(setTimeout(() => {
-    mixPlayer.classList.add('docked');
+    mixPlayer.classList.add('side-by-side');
   }, 2000));
 }
 
 function closeMixPlayer(){
   if(!activeMixCard) return;
   clearMixPlayerTimers();
-  mixPlayer.classList.remove('opened', 'docked', 'flvideo-visible', 'playing');
+  mixPlayer.classList.remove('opened', 'side-by-side', 'flvideo-visible', 'playing');
   mixPlayerVinylSlot.classList.remove('spinning');
   mixAudio.pause(); // fires 'pause' — background track resumes via the generic ducking hook
   mixPlayerFlVideo.pause();
@@ -805,10 +838,6 @@ document.getElementById('mix-player-backdrop').addEventListener('click', () => {
   if(!mixPlayer.classList.contains('playing')) closeMixPlayer();
 });
 mixPlayerVinylSlot.addEventListener('click', () => {
-  if(mixPlayer.classList.contains('docked')){
-    closeMixPlayer(); // "the vinyl leaves its placeholder and returns when the user is done"
-  } else if(!mixPlayer.classList.contains('playing')){
-    startMixPlayback();
-  }
+  if(!mixPlayer.classList.contains('playing')) startMixPlayback();
 });
 mixAudio.addEventListener('ended', () => closeMixPlayer());
