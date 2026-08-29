@@ -280,10 +280,9 @@
         </figcaption>
       </figure>
 
-      <figure class="piece">
+      <figure class="piece" data-video-piece data-demo-src="assets/projects/codecoach-demo.mp4">
         <div class="piece-media">
-          <span class="piece-placeholder-label">image coming soon</span>
-          <img src="assets/projects/codecoach.jpg" alt="codecoach" loading="lazy" onerror="this.style.display='none'">
+          <img src="assets/projects/codecoach-cover.png" alt="CodeCoach" loading="lazy">
         </div>
         <figcaption class="piece-caption">
           <div class="piece-title">codecoach</div>
@@ -747,6 +746,25 @@
         <div class="objectify-sphere-canvas" id="objectify-canvas-final"></div>
         <div class="objectify-sphere-hint">drag to rotate</div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Reusable cover → demo video viewer, same choreography as the
+     Objectify viewer above: click a project's own cover art (any piece
+     marked data-video-piece, with data-demo-src pointing at its clip) →
+     the cover FLIP-grows in, then shrinks toward the top a beat later
+     while the demo video fades in below it and starts playing. One
+     shared overlay works for every project that has a cover + demo —
+     adding a new one later needs no JS changes, just the two data
+     attributes on that piece's <figure>. -->
+<div class="piece-viewer" id="piece-viewer" hidden>
+  <div class="piece-viewer-backdrop" id="piece-viewer-backdrop"></div>
+  <div class="piece-viewer-stage">
+    <button class="piece-viewer-close" id="piece-viewer-close" type="button" aria-label="close">✕</button>
+    <div class="piece-viewer-hero" id="piece-viewer-hero"></div>
+    <div class="piece-viewer-demo" id="piece-viewer-demo">
+      <video id="piece-viewer-video" playsinline></video>
     </div>
   </div>
 </div>

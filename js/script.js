@@ -503,7 +503,7 @@ function closeLightbox(){
   }, 350);
 }
 
-document.querySelectorAll('.piece:not([data-custom-viewer])').forEach(piece => {
+document.querySelectorAll('.piece:not([data-custom-viewer]):not([data-video-piece])').forEach(piece => {
   piece.addEventListener('click', () => openLightbox(piece));
 });
 lightboxClose.addEventListener('click', closeLightbox);
@@ -993,3 +993,69 @@ function createPlyViewer(container, plyUrl, opts){
 
   return { resize };
 }
+
+/* Reusable project cover → demo video viewer — the same choreography as
+   the Objectify viewer above, generalized: any .piece marked
+   data-video-piece with a data-demo-src gets this automatically, no
+   per-project JS needed. Clicking the cover FLIP-moves the real <img>
+   (not a clone) into #piece-viewer-hero, then ~700ms later shrinks it
+   toward the top (max-height transition, so the flex column simply
+   re-centers around it) while the demo video fades in below and starts
+   playing. Closing pauses the video and FLIPs the image back into the
+   exact gallery card it came from. */
+const pieceViewer = document.getElementById('piece-viewer');
+const pieceViewerHero = document.getElementById('piece-viewer-hero');
+const pieceViewerDemo = document.getElementById('piece-viewer-demo');
+const pieceViewerVideo = document.getElementById('piece-viewer-video');
+const pieceViewerClose = document.getElementById('piece-viewer-close');
+const pieceViewerBackdrop = document.getElementById('piece-viewer-backdrop');
+
+let pieceViewerActiveImg = null;
+let pieceViewerActivePiece = null;
+
+function openPieceViewer(piece){
+  if(pieceViewerActiveImg) return; // one at a time
+  const img = piece.querySelector('.piece-media img');
+  if(!img) return;
+  pieceViewerActivePiece = piece;
+  pieceViewerActiveImg = img;
+
+  pieceViewer.hidden = false;
+  pieceViewer.classList.remove('revealed');
+  flipInto(img, pieceViewerHero);
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => pieceViewer.classList.add('opened'));
+  });
+
+  setTimeout(() => {
+    pieceViewer.classList.add('revealed');
+    const src = piece.dataset.demoSrc;
+    if(src){
+      pieceViewerVideo.src = src;
+      pieceViewerVideo.currentTime = 0;
+      pieceViewerVideo.play().catch(() => {}); // triggers the generic ducking hook if this clip ever has real audio
+    }
+  }, 700);
+}
+
+function closePieceViewer(){
+  if(!pieceViewerActiveImg) return;
+  pieceViewer.classList.remove('opened', 'revealed');
+  pieceViewerVideo.pause(); // fires 'pause' — resumes background music via the generic ducking hook, if it was ever ducked
+  const cover = pieceViewerActivePiece.querySelector('.piece-media');
+  flipInto(pieceViewerActiveImg, cover);
+  pieceViewerActiveImg = null;
+  pieceViewerActivePiece = null;
+  setTimeout(() => {
+    pieceViewer.hidden = true;
+    pieceViewerVideo.removeAttribute('src');
+    pieceViewerVideo.load();
+  }, 600);
+}
+
+document.querySelectorAll('.piece[data-video-piece]').forEach(piece => {
+  piece.addEventListener('click', () => openPieceViewer(piece));
+});
+pieceViewerClose.addEventListener('click', (e) => { e.stopPropagation(); closePieceViewer(); });
+pieceViewerBackdrop.addEventListener('click', closePieceViewer);
