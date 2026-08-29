@@ -406,20 +406,35 @@ const lightboxDesc = document.getElementById('lightbox-desc');
 const lightboxClose = document.getElementById('lightbox-close');
 const lightboxBackdrop = document.getElementById('lightbox-backdrop');
 
-function openLightbox(piece){
-  const media = piece.querySelector('.piece-media').cloneNode(true);
-  media.querySelectorAll('video').forEach(v => { v.removeAttribute('loop'); v.setAttribute('controls', ''); });
+function openLightboxWith(mediaSourceEl, title, medium, desc){
+  const media = mediaSourceEl.cloneNode(true);
+  media.querySelectorAll('video').forEach(v => {
+    v.removeAttribute('loop');
+    v.removeAttribute('muted');
+    v.muted = false;
+    v.setAttribute('controls', '');
+  });
   lightboxMedia.innerHTML = '';
   lightboxMedia.appendChild(media);
-  lightboxTitle.textContent = piece.querySelector('.piece-title').textContent;
-  lightboxMedium.textContent = piece.querySelector('.piece-medium').textContent;
-  lightboxDesc.textContent = piece.querySelector('.piece-desc').textContent;
+  lightboxTitle.textContent = title;
+  lightboxMedium.textContent = medium;
+  lightboxDesc.textContent = desc;
   lightbox.hidden = false;
   requestAnimationFrame(() => lightbox.classList.add('showing'));
 }
 
+function openLightbox(piece){
+  openLightboxWith(
+    piece.querySelector('.piece-media'),
+    piece.querySelector('.piece-title').textContent,
+    piece.querySelector('.piece-medium').textContent,
+    piece.querySelector('.piece-desc').textContent
+  );
+}
+
 function closeLightbox(){
   lightbox.classList.remove('showing');
+  lightboxMedia.querySelectorAll('video').forEach(v => v.pause()); // fires 'pause' so background music ducking resumes
   setTimeout(() => { lightbox.hidden = true; lightboxMedia.innerHTML = ''; }, 350);
 }
 
@@ -430,6 +445,27 @@ lightboxClose.addEventListener('click', closeLightbox);
 lightboxBackdrop.addEventListener('click', closeLightbox);
 document.addEventListener('keydown', (e) => {
   if(e.key === 'Escape' && !lightbox.hidden) closeLightbox();
+});
+
+/* about page — real reel videos: hover-preview muted (same pattern as the
+   project gallery), click opens the lightbox with sound. Ducking the
+   background track while a reel plays is handled generically by the
+   play/pause/ended delegation set up above the music-gate code. */
+document.querySelectorAll('.about-mix-card[data-video]').forEach(card => {
+  const cover = card.querySelector('.about-mix-cover');
+  const previewVideo = cover.querySelector('video');
+  if(previewVideo){
+    cover.addEventListener('mouseenter', () => previewVideo.play().catch(() => {}));
+    cover.addEventListener('mouseleave', () => { previewVideo.pause(); previewVideo.currentTime = 0; });
+  }
+  card.addEventListener('click', () => {
+    openLightboxWith(
+      cover,
+      card.querySelector('.about-mix-title').textContent,
+      card.querySelector('.about-mix-meta').textContent,
+      ''
+    );
+  });
 });
 
 /* about page — djing section: sound effect placeholder */

@@ -91,7 +91,7 @@ main{flex:1 0 auto; position:relative;}
 .hero-panel{
   position:relative;
   margin-top:-1px;
-  background:var(--sage-bg);
+  background:var(--sage-bg) url('../assets/hero/clouds.jpg') center/cover no-repeat;
   color:var(--sage-text);
   min-height:100vh;
   display:flex;
@@ -100,6 +100,16 @@ main{flex:1 0 auto; position:relative;}
   overflow:hidden;
 }
 .hero-panel .wrap{position:relative; z-index:2;}
+/* blends the photo into the next panel's near-black background — bottom
+   edge only, so it reads as a deliberate transition rather than a hard cut */
+.hero-panel::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  background:linear-gradient(180deg, transparent 78%, var(--bg) 100%);
+}
 .timeline-panel{
   background:var(--bg);
   color:var(--text);
@@ -1185,7 +1195,11 @@ footer{
   transition:border-color 0.3s var(--ease-fast), background 0.3s var(--ease-fast);
 }
 .about-mix-card:hover .about-mix-cover{border-color:rgba(255,255,255,0.4); background:rgba(255,255,255,0.08);}
-.about-mix-cover img{width:100%; height:100%; object-fit:cover; display:block; position:absolute; inset:0;}
+.about-mix-cover img,
+.about-mix-cover video{width:100%; height:100%; object-fit:cover; display:block; position:absolute; inset:0;}
+/* real video, not a placeholder — solid border instead of the dashed
+   "nothing here yet" style used by empty cards */
+.about-mix-card[data-video] .about-mix-cover{border-style:solid; cursor:pointer;}
 .about-mix-placeholder-label{
   font-family:var(--mono);
   font-size:11px;
@@ -1210,6 +1224,12 @@ footer{
   cursor:not-allowed;
   opacity:0.5;
 }
+.about-mix-play:not([disabled]){
+  cursor:pointer;
+  opacity:0.85;
+  transition:opacity 0.2s var(--ease-fast), background 0.2s var(--ease-fast);
+}
+.about-mix-play:not([disabled]):hover{opacity:1; background:rgba(255,255,255,0.2);}
 .about-mix-title{margin-top:14px; font-size:13.5px; font-weight:600; color:#fff;}
 .about-mix-meta{
   font-family:var(--mono);
