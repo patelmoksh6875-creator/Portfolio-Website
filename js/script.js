@@ -895,8 +895,8 @@ function openObjectifyViewer(){
     objectifyViewer.classList.add('revealed');
     if(!objectifyViewersReady){
       objectifyViewersReady = true;
-      createPlyViewer(document.getElementById('objectify-canvas-test'), 'assets/projects/test_sphere_cleaned.ply', { color: 0x9a9a9a });
-      createPlyViewer(document.getElementById('objectify-canvas-final'), 'assets/projects/final_sphere.ply', { color: 0xffffff });
+      createPlyViewer(document.getElementById('objectify-canvas-test'), 'assets/projects/final_sphere.ply', { color: 0xffffff });
+      createPlyViewer(document.getElementById('objectify-canvas-final'), 'assets/projects/test_sphere_cleaned.ply', { color: 0x9a9a9a });
     }
   }, 700);
 }
