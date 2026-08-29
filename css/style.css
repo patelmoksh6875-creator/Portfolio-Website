@@ -1747,3 +1747,127 @@ footer{
   .contact-row{flex-direction:column; align-items:flex-start; gap:4px;}
   .poster-name{font-size:30px;}
 }
+
+/* Objectify case-study viewer — a full-viewport overlay opened by
+   clicking that project's own thumbnail (not the generic project
+   lightbox). js/script.js FLIP-moves the real <img> (not a clone) into
+   #objectify-viewer-hero and back again on close. Two classes drive it:
+     .opened   — the image has grown in
+     .revealed — added ~700ms later: the image shrinks (a max-height
+                 transition, not a transform, so the flex column simply
+                 re-centers around the now-shorter image — reading as
+                 "the image moves up" as a natural side effect rather
+                 than a hand-choreographed second animation) while the
+                 two sphere viewers fade in below it and get their
+                 Three.js scenes created for the first time (lazily, and
+                 only once actually visible/sized — creating a WebGL
+                 context inside a still-hidden container has corrupted
+                 the canvas permanently on some GPUs in earlier features
+                 on this site). */
+.objectify-viewer{position:fixed; inset:0; z-index:970;}
+.objectify-viewer[hidden]{display:none;}
+.objectify-viewer-backdrop{
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,0.85);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.5s var(--ease);
+}
+.objectify-viewer.opened .objectify-viewer-backdrop{opacity:1; pointer-events:auto;}
+
+.objectify-viewer-stage{
+  position:relative;
+  width:100%;
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:28px;
+  padding:90px 24px 48px;
+  overflow-y:auto;
+}
+
+.objectify-viewer-close{
+  position:fixed;
+  top:24px; right:24px;
+  width:40px; height:40px;
+  border-radius:50%;
+  background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.2);
+  color:#fff;
+  font-size:15px;
+  cursor:pointer;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.3s var(--ease-fast);
+  z-index:2;
+}
+.objectify-viewer.opened .objectify-viewer-close{opacity:1; pointer-events:auto;}
+
+.objectify-viewer-hero{
+  width:min(640px, 80vw);
+  max-height:60vh;
+  opacity:0;
+  transform:scale(0.85);
+  border-radius:14px;
+  overflow:hidden;
+  background:#f4f2ec;
+  box-shadow:0 30px 80px rgba(0,0,0,0.55);
+  flex-shrink:0;
+  transition:opacity 0.5s var(--ease), transform 0.6s var(--ease), max-height 0.7s var(--ease);
+}
+.objectify-viewer-hero img{width:100%; height:100%; object-fit:contain; display:block;}
+.objectify-viewer.opened .objectify-viewer-hero{opacity:1; transform:scale(1);}
+.objectify-viewer.revealed .objectify-viewer-hero{max-height:220px;}
+
+.objectify-viewer-spheres{
+  display:flex;
+  gap:28px;
+  flex-wrap:wrap;
+  justify-content:center;
+  opacity:0;
+  transform:translateY(16px);
+  transition:opacity 0.5s var(--ease) 0.1s, transform 0.5s var(--ease) 0.1s;
+  pointer-events:none;
+}
+.objectify-viewer.revealed .objectify-viewer-spheres{opacity:1; transform:translateY(0); pointer-events:auto;}
+
+.objectify-sphere-card{
+  width:min(320px, 42vw);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+.objectify-sphere-title{
+  font-family:var(--mono);
+  font-size:12px;
+  letter-spacing:0.08em;
+  text-transform:lowercase;
+  color:#999;
+  margin-bottom:10px;
+}
+.objectify-sphere-canvas{
+  position:relative;
+  width:100%;
+  aspect-ratio:1/1;
+  border-radius:14px;
+  overflow:hidden;
+  background:radial-gradient(circle at 35% 30%, #1c1c1c, #050505 75%);
+  cursor:grab;
+}
+.objectify-sphere-canvas:active{cursor:grabbing;}
+.objectify-sphere-canvas canvas{display:block; width:100% !important; height:100% !important;}
+.objectify-sphere-hint{
+  margin-top:10px;
+  font-family:var(--mono);
+  font-size:11px;
+  color:#777;
+  letter-spacing:0.06em;
+}
+
+@media(max-width:640px){
+  .objectify-viewer-stage{padding:80px 16px 32px; gap:20px;}
+  .objectify-sphere-card{width:min(280px, 80vw);}
+}

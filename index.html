@@ -243,15 +243,14 @@
     <p class="lede">a small gallery — click a piece for a closer look.</p>
 
     <div class="gallery">
-      <figure class="piece">
+      <figure class="piece" id="objectify-piece" data-custom-viewer>
         <div class="piece-media">
-          <span class="piece-placeholder-label">image coming soon</span>
-          <img src="assets/projects/3d-scanner.jpg" alt="3d scanner pipeline" loading="lazy" onerror="this.style.display='none'">
+          <img src="assets/projects/objectify-hero.png" alt="Objectify — 3d scanner pipeline" loading="lazy">
         </div>
         <figcaption class="piece-caption">
           <div class="piece-title">3d scanner pipeline</div>
           <div class="piece-medium">computer vision · 2026</div>
-          <div class="piece-desc">photogrammetry via COLMAP — turning a set of handheld photos into a dense 3d reconstruction.</div>
+          <div class="piece-desc">Objectify — photogrammetry via COLMAP, turning a set of handheld photos into a dense 3d reconstruction, no LiDAR involved. That was also the main limitation: without a depth sensor providing ground-truth, the pipeline depended entirely on feature-matched projections across photos, and those projections weren't always reliable — texture-poor or highly complex objects would throw off the matching enough that they didn't reconstruct cleanly, if at all. Click through to see an early test scan next to the cleaned-up final result — both are real point clouds from the pipeline, not renders, and you can drag to turn them.</div>
         </figcaption>
       </figure>
 
@@ -726,10 +725,39 @@
   </div>
 </div>
 
+<!-- Objectify case-study viewer: click the piece's own image (not the
+     generic project lightbox) → it FLIP-grows in, then shrinks toward
+     the top while two real, interactive 3d scans (an early test and the
+     cleaned-up final) fade in below it — actual point clouds loaded
+     from .ply files via Three.js + PLYLoader, orbit-draggable via
+     OrbitControls, not renders. -->
+<div class="objectify-viewer" id="objectify-viewer" hidden>
+  <div class="objectify-viewer-backdrop" id="objectify-viewer-backdrop"></div>
+  <div class="objectify-viewer-stage">
+    <button class="objectify-viewer-close" id="objectify-viewer-close" type="button" aria-label="close">✕</button>
+    <div class="objectify-viewer-hero" id="objectify-viewer-hero"></div>
+    <div class="objectify-viewer-spheres">
+      <div class="objectify-sphere-card">
+        <div class="objectify-sphere-title">early test scan</div>
+        <div class="objectify-sphere-canvas" id="objectify-canvas-test"></div>
+        <div class="objectify-sphere-hint">drag to rotate</div>
+      </div>
+      <div class="objectify-sphere-card">
+        <div class="objectify-sphere-title">cleaned-up final</div>
+        <div class="objectify-sphere-canvas" id="objectify-canvas-final"></div>
+        <div class="objectify-sphere-hint">drag to rotate</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <footer>
   <span>© 2026 moksh patel</span>
 </footer>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/PLYLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script src="js/script.js"></script>
 
 </body>

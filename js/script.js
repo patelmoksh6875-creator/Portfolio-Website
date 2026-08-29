@@ -503,7 +503,7 @@ function closeLightbox(){
   }, 350);
 }
 
-document.querySelectorAll('.piece').forEach(piece => {
+document.querySelectorAll('.piece:not([data-custom-viewer])').forEach(piece => {
   piece.addEventListener('click', () => openLightbox(piece));
 });
 lightboxClose.addEventListener('click', closeLightbox);
@@ -861,3 +861,135 @@ mixPlayerVinylSlot.addEventListener('click', () => {
   if(!mixPlayer.classList.contains('playing')) startMixPlayback();
 });
 mixAudio.addEventListener('ended', () => closeMixPlayer());
+
+/* Objectify case-study viewer — clicking that project's own thumbnail
+   FLIP-moves the real <img> (not a clone, so it can go back to the exact
+   gallery slot on close) into #objectify-viewer-hero, then ~700ms later
+   the hero shrinks and two real, interactive point-cloud viewers fade in
+   below it, built lazily (only the first time this actually opens, and
+   only once the container has real size — see createPlyViewer below). */
+const objectifyPiece = document.getElementById('objectify-piece');
+const objectifyViewer = document.getElementById('objectify-viewer');
+const objectifyHero = document.getElementById('objectify-viewer-hero');
+const objectifyClose = document.getElementById('objectify-viewer-close');
+const objectifyBackdrop = document.getElementById('objectify-viewer-backdrop');
+
+let objectifyActiveImg = null;
+let objectifyViewersReady = false;
+
+function openObjectifyViewer(){
+  if(!objectifyPiece || objectifyActiveImg) return;
+  const img = objectifyPiece.querySelector('.piece-media img');
+  if(!img) return;
+  objectifyActiveImg = img;
+
+  objectifyViewer.hidden = false;
+  objectifyViewer.classList.remove('revealed');
+  flipInto(img, objectifyHero);
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => objectifyViewer.classList.add('opened'));
+  });
+
+  setTimeout(() => {
+    objectifyViewer.classList.add('revealed');
+    if(!objectifyViewersReady){
+      objectifyViewersReady = true;
+      createPlyViewer(document.getElementById('objectify-canvas-test'), 'assets/projects/test_sphere_cleaned.ply', { color: 0x9a9a9a });
+      createPlyViewer(document.getElementById('objectify-canvas-final'), 'assets/projects/final_sphere.ply', { color: 0xffffff });
+    }
+  }, 700);
+}
+
+function closeObjectifyViewer(){
+  if(!objectifyActiveImg) return;
+  objectifyViewer.classList.remove('opened', 'revealed');
+  const cover = objectifyPiece.querySelector('.piece-media');
+  flipInto(objectifyActiveImg, cover);
+  objectifyActiveImg = null;
+  setTimeout(() => { objectifyViewer.hidden = true; }, 600);
+}
+
+if(objectifyPiece){
+  objectifyPiece.addEventListener('click', openObjectifyViewer);
+  objectifyClose.addEventListener('click', (e) => { e.stopPropagation(); closeObjectifyViewer(); });
+  objectifyBackdrop.addEventListener('click', closeObjectifyViewer);
+}
+
+/* a real, orbit-draggable 3d point-cloud/mesh viewer for one .ply file —
+   used for both the early test scan and the cleaned-up final result.
+   Requires THREE + THREE.PLYLoader + THREE.OrbitControls (loaded from
+   CDN in index.html, before js/script.js). Only ever called once its
+   container is actually visible and sized (see openObjectifyViewer
+   above) — constructing a WebGL context inside a still-hidden element
+   has permanently corrupted the canvas on some GPUs elsewhere on this
+   site, so this sidesteps that entirely rather than trying to recover
+   from it. */
+function createPlyViewer(container, plyUrl, opts){
+  if(typeof THREE === 'undefined' || !THREE.PLYLoader || !THREE.OrbitControls || !container) return null;
+  opts = opts || {};
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  container.appendChild(renderer.domElement);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(45, 1, 0.01, 100);
+  camera.position.set(0, 0, 2.6);
+
+  scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+  const key = new THREE.DirectionalLight(0xffffff, 0.9);
+  key.position.set(2, 3, 4);
+  scene.add(key);
+  const rim = new THREE.DirectionalLight(0x88aaff, 0.4);
+  rim.position.set(-3, -1, -2);
+  scene.add(rim);
+
+  const controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.08;
+  controls.enablePan = false;
+  controls.minDistance = 1;
+  controls.maxDistance = 6;
+  controls.autoRotate = true;
+  controls.autoRotateSpeed = 1.2;
+  controls.addEventListener('start', () => { controls.autoRotate = false; });
+
+  function resize(){
+    const w = container.clientWidth;
+    const h = container.clientHeight;
+    if(!w || !h) return;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+  resize();
+  new ResizeObserver(resize).observe(container);
+
+  new THREE.PLYLoader().load(plyUrl, geometry => {
+    geometry.computeVertexNormals();
+    geometry.center();
+    geometry.computeBoundingSphere();
+    const radius = (geometry.boundingSphere && geometry.boundingSphere.radius) || 1;
+
+    const hasColor = !!geometry.getAttribute('color');
+    const material = new THREE.MeshStandardMaterial({
+      color: opts.color || 0xffffff,
+      vertexColors: hasColor,
+      roughness: 0.65,
+      metalness: 0.05,
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.scale.setScalar(0.85 / radius);
+    scene.add(mesh);
+  });
+
+  function tick(){
+    requestAnimationFrame(tick);
+    controls.update();
+    renderer.render(scene, camera);
+  }
+  tick();
+
+  return { resize };
+}
