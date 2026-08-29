@@ -577,12 +577,15 @@ section{margin-top:80px;}
   overflow:hidden;
   position:relative;
 }
-/* videos get their real 16:9 shape here instead of inheriting the 4:3
-   default meant for photos — without this, a cloned .about-mix-cover's
-   own aspect-ratio was fighting this container's, and the video ended up
-   squeezed into a near-square box with the sides cropped off */
-.lightbox-media.lightbox-media--video{aspect-ratio:16/9;}
-.lightbox-media img, .lightbox-media video{width:100%; height:100%; object-fit:cover; display:block;}
+/* video gets no forced aspect-ratio at all here (unlike the 4:3 default
+   meant for photos) — it renders at its own natural size, full frame,
+   never cropped. An earlier version forced a 16:9 box, which was still
+   an assumption about the source's shape rather than actually reading
+   it, and any mismatch (or the cloned .about-mix-cover's own competing
+   aspect-ratio) still cropped it */
+.lightbox-media.lightbox-media--video{aspect-ratio:auto; background:#050505;}
+.lightbox-media img{width:100%; height:100%; object-fit:cover; display:block;}
+.lightbox-media video{width:100%; height:auto; object-fit:contain; display:block;}
 
 /* glass "start/stop" bar — only shown when the lightbox is playing a
    video, sits over the bottom edge of the media */
@@ -1225,10 +1228,22 @@ footer{
 .about-mix-cover img,
 .about-mix-cover video{width:100%; height:100%; object-fit:cover; display:block; position:absolute; inset:0;}
 /* real video, not a placeholder — solid border instead of the dashed
-   "nothing here yet" style used by empty cards */
-/* standard widescreen video format instead of the shared square mix-card
-   box — the square box was cropping heavily off the sides of these clips */
-.about-mix-card[data-video] .about-mix-cover{aspect-ratio:16/9; border-style:solid; cursor:pointer;}
+   "nothing here yet" style used by empty cards. No forced aspect-ratio
+   box at all here (unlike the square/16:9 versions tried earlier) — the
+   video is taken out of the absolute-fill/object-fit:cover treatment
+   entirely and just rendered at its own natural size, so it is never
+   cropped regardless of what its real aspect ratio turns out to be. */
+.about-mix-cover--video{
+  aspect-ratio:auto;
+  border-style:solid;
+  cursor:pointer;
+}
+.about-mix-cover--video video{
+  position:static;
+  width:100%;
+  height:auto;
+  object-fit:contain;
+}
 .about-mix-placeholder-label{
   font-family:var(--mono);
   font-size:11px;
@@ -1398,7 +1413,15 @@ footer{
   overflow:hidden;
   box-shadow:0 30px 80px rgba(0,0,0,0.65);
   background:#050505;
+  opacity:0;
+  transition:opacity 0.4s var(--ease);
 }
+/* fades out with everything else on close instead of sitting there as a
+   solid dark box once the real <img> has already FLIPed back to its
+   card — it used to have no opacity transition at all, so it stayed
+   fully visible (a "stuck black box") until the whole overlay force-hid
+   itself half a second later */
+.travel-viewer.opened .travel-viewer-photo{opacity:1;}
 .travel-viewer-photo img{width:100%; height:100%; object-fit:contain; display:block;}
 
 .travel-viewer-panel{
@@ -1530,7 +1553,12 @@ footer{
   pointer-events:none;
 }
 .mix-player-vinyl .mix-vinyl-icon{width:100%; height:100%;}
-.mix-player.opened .mix-player-vinyl{opacity:1;}
+/* pointer-events:auto here (not just on .docked) is what makes the vinyl
+   clickable to actually start playback — without it, clicks on the
+   "opened, not yet playing" vinyl fell through to the backdrop behind it
+   and closed the player instead, which looked like clicking the vinyl
+   just sent it back without ever reaching the docked corner */
+.mix-player.opened .mix-player-vinyl{opacity:1; pointer-events:auto; cursor:pointer;}
 .mix-player-vinyl.spinning .mix-vinyl-icon{animation:mix-vinyl-spin 2.4s linear infinite;}
 @keyframes mix-vinyl-spin{from{transform:rotate(0deg);} to{transform:rotate(360deg);}}
 .mix-player.docked .mix-player-vinyl{
@@ -1547,7 +1575,7 @@ footer{
    after the vinyl arrives and before the user clicks it */
 .mix-player-hint{
   position:absolute;
-  top:calc(50% + 232px);
+  top:56px;
   left:50%;
   transform:translateX(-50%);
   font-family:var(--mono);
@@ -1605,7 +1633,6 @@ footer{
   .mix-player.flvideo-visible .mix-player-flvideo{transform:translateX(-50%) translateY(0);}
   .mix-player.docked .mix-player-flvideo{transform:translateX(-50%) translateY(30px);}
   .mix-player-vinyl{top:calc(50% - 140px); left:calc(50% - 140px); width:280px; height:280px;}
-  .mix-player-hint{top:calc(50% + 162px);}
   .mix-player.docked .mix-player-vinyl{top:calc(100vh - 122px); left:24px; width:90px; height:90px;}
 }
 
