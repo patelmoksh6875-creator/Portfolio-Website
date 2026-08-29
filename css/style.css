@@ -603,10 +603,16 @@ section{margin-top:80px;}
   background:rgba(20,20,20,0.5);
   backdrop-filter:blur(14px);
   -webkit-backdrop-filter:blur(14px);
+  opacity:1;
+  transition:opacity 0.35s var(--ease-fast);
   border:1px solid rgba(255,255,255,0.18);
   box-shadow:0 8px 24px rgba(0,0,0,0.3);
 }
 .lightbox-video-controls[hidden]{display:none;}
+/* auto-hide after 2s of no mouse movement — toggled by js/script.js,
+   fades out instead of disappearing abruptly, and never blocks clicks
+   (or the seek drag) while faded since pointer-events goes with it */
+.lightbox-video-controls.idle{opacity:0; pointer-events:none;}
 .lightbox-video-toggle{
   flex-shrink:0;
   width:34px;
@@ -1236,6 +1242,9 @@ footer{
 /* Travel's grid left a lot of empty space before the Future banner —
    pull the next section up a bit without losing all the breathing room */
 .about-category[data-category="travel"]{padding-bottom:56px;}
+/* Future is just a heading + one paragraph — the shared category padding
+   left a lot of empty space above and below it for no reason */
+.about-category[data-category="future"]{padding:56px 0 80px;}
 
 .about-intro-copy .section-title{color:#fff;}
 .about-lede{font-size:14px; line-height:1.8; color:var(--muted); max-width:52ch;}
@@ -1559,25 +1568,26 @@ footer{
    vinyl. js/script.js FLIP-moves the card's own .mix-vinyl-icon into
    #mix-player-vinyl (and back again on close) and drives states via
    classes on .mix-player:
-     .opened          — vinyl has arrived, large and centered, not yet
-                        spinning; .mix-player-hint ("click to play")
-                        shows, centered near the top
-     .playing         — added when the user clicks the vinyl: spin
-                        starts, the mix itself starts (ducking the
-                        background track via the same generic play/
-                        pause/ended delegation the Cinematography reels
-                        use — #mix-audio is just another non-background
-                        element)
-     .side-by-side    — added 2s into .playing (after the vinyl has
-                        been visibly spinning in place that whole time):
-                        the vinyl shrinks and moves to the left, the FL
-                        Studio clip slides in from the right to take the
-                        spot the vinyl used to occupy. Both stay fully
-                        visible together as the overlay's two main
-                        components — this never fades to a mini corner
-                        icon or lets the page become interactive again;
-                        it's a still-modal two-up "now playing" view for
-                        as long as the mix keeps going.
+     .opened          — vinyl has arrived, large and centered; a
+                        "click to play" hint shows, centered near the top
+     .playing         — added when the user clicks the vinyl: the mix
+                        itself starts (ducking the background track via
+                        the same generic play/pause/ended delegation the
+                        Cinematography reels use — #mix-audio is just
+                        another non-background element)
+     .side-by-side    — added 2s into .playing: the vinyl shrinks and
+                        moves to the left, the FL Studio clip slides in
+                        from the right to take the spot the vinyl used
+                        to occupy. Both stay fully visible together as
+                        the overlay's two main components — this never
+                        fades to a mini corner icon or lets the page
+                        become interactive again; it's a still-modal
+                        two-up "now playing" view for as long as the mix
+                        keeps going. (An earlier version also spun the
+                        vinyl continuously here — removed after it kept
+                        stuttering at the start of the animation before
+                        settling into a clean spin, and turned out not
+                        to be needed for the interaction to read well.)
    Only the ✕ (or the backdrop, before playback starts) closes the
    player — audio/video stop, and the vinyl FLIPs smoothly back into the
    exact card slot it came from. */
@@ -1636,13 +1646,6 @@ footer{
    vinyl fell through to the backdrop behind it and closed the player
    instead, which looked like clicking the vinyl just sent it back */
 .mix-player.opened .mix-player-vinyl{opacity:1; pointer-events:auto; cursor:pointer;}
-/* the spin is a plain rotation of the icon INSIDE its own box — the box
-   itself (this element) is what moves/resizes between states, so the
-   icon always turns in place around its own center, never sweeping
-   through an arc the way it would if this box's own position changed
-   mid-spin via a transform sharing the same property */
-.mix-player-vinyl.spinning .mix-vinyl-icon{animation:mix-vinyl-spin 2.4s linear infinite;}
-@keyframes mix-vinyl-spin{from{transform:rotate(0deg);} to{transform:rotate(360deg);}}
 .mix-player.side-by-side .mix-player-vinyl{
   top:calc(50% - 130px);
   left:calc(50% - 380px);

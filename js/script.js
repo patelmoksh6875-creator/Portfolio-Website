@@ -462,8 +462,25 @@ function openLightboxWith(mediaSourceEl, title, medium, desc){
     video.addEventListener('loadedmetadata', syncSeek);
     video.addEventListener('timeupdate', syncSeek);
     lightboxVideoSeek.oninput = () => { video.currentTime = lightboxVideoSeek.value; };
+
+    showLightboxVideoControls(); // visible on open, then the usual 2s idle timer takes over
   }
 }
+
+/* the video controls bar fades out after 2s of no mouse movement over the
+   video, and comes right back the moment the mouse moves again — same
+   pattern as any video player's auto-hiding transport controls. */
+let lightboxControlsIdleTimer;
+function showLightboxVideoControls(){
+  if(lightboxVideoControls.hidden) return; // no video open — nothing to show
+  lightboxVideoControls.classList.remove('idle');
+  clearTimeout(lightboxControlsIdleTimer);
+  lightboxControlsIdleTimer = setTimeout(() => {
+    lightboxVideoControls.classList.add('idle');
+  }, 2000);
+}
+lightboxMedia.addEventListener('mousemove', showLightboxVideoControls);
+lightboxMedia.addEventListener('mouseenter', showLightboxVideoControls);
 
 function openLightbox(piece){
   openLightboxWith(
@@ -477,7 +494,13 @@ function openLightbox(piece){
 function closeLightbox(){
   lightbox.classList.remove('showing');
   lightboxMedia.querySelectorAll('video').forEach(v => v.pause()); // fires 'pause' so background music ducking resumes
-  setTimeout(() => { lightbox.hidden = true; lightboxMedia.innerHTML = ''; lightboxVideoControls.hidden = true; }, 350);
+  clearTimeout(lightboxControlsIdleTimer);
+  setTimeout(() => {
+    lightbox.hidden = true;
+    lightboxMedia.innerHTML = '';
+    lightboxVideoControls.hidden = true;
+    lightboxVideoControls.classList.remove('idle');
+  }, 350);
 }
 
 document.querySelectorAll('.piece').forEach(piece => {
@@ -688,23 +711,23 @@ if(djingCategory){
 
 /* about page — DJing mix player. Clicking a mix's vinyl FLIP-moves that
    card's own .mix-vinyl-icon into a full overlay — it grows in centered,
-   not yet spinning, with a "click to play" hint. Clicking the vinyl
-   again starts the mix (ducking the background track via the same
-   generic play/pause/ended hook the Cinematography reels use — #mix-
-   audio is just another non-background element) and starts the spin —
-   the vinyl visibly turns in place for a full 2 seconds before anything
-   else happens. The FL Studio clip slides in from the side ~900ms in;
-   at the 2s mark the vinyl shrinks and shifts to the left while the FL
-   clip grows into the spot the vinyl used to fill — both stay fully
-   visible together as the overlay's two main components (.side-by-side)
-   for as long as the mix plays; this never fades to a mini corner icon
-   or lets the page become interactive again. Only the ✕ (or the
-   backdrop, before playback starts) closes the player — audio/video
-   stop, and the vinyl FLIPs smoothly back into the exact card slot it
-   came from, so the card never stays empty, it just briefly lends its
-   vinyl out. data-mix-src/data-fl-src are empty placeholders until real
-   files exist; the visual sequence still plays either way, it just
-   skips whichever media isn't there yet. */
+   with a "click to play" hint. Clicking the vinyl again starts the mix
+   (ducking the background track via the same generic play/pause/ended
+   hook the Cinematography reels use — #mix-audio is just another
+   non-background element). 2 seconds later the vinyl shrinks and shifts
+   to the left while the FL Studio clip slides in from the right and
+   grows into the spot the vinyl used to fill — both stay fully visible
+   together as the overlay's two main components (.side-by-side) for as
+   long as the mix plays; this never fades to a mini corner icon or lets
+   the page become interactive again. Only the ✕ (or the backdrop,
+   before playback starts) closes the player — audio/video stop, and the
+   vinyl FLIPs smoothly back into the exact card slot it came from, so
+   the card never stays empty, it just briefly lends its vinyl out.
+   data-mix-src/data-fl-src are empty placeholders until real files
+   exist; the visual sequence still plays either way, it just skips
+   whichever media isn't there yet. (A continuous spin animation on the
+   vinyl was tried and removed — it stuttered noticeably at the start
+   before settling into a clean rotation.) */
 const mixPlayer = document.getElementById('mix-player');
 const mixPlayerVinylSlot = document.getElementById('mix-player-vinyl');
 const mixPlayerFlVideo = document.getElementById('mix-player-flvideo-el');
@@ -746,11 +769,10 @@ function flipInto(el, newParent){
     });
   });
   // transformOrigin:'top left' above was only ever needed for this one
-  // FLIP animation's own math — left set, it makes any LATER transform
-  // (a continuous spin, say) rotate around the element's corner instead
-  // of its center, sweeping it through a wide circular arc instead of
-  // turning in place. Clear it back to the CSS default once the FLIP
-  // transition has actually finished.
+  // FLIP animation's own math — left set, it would make any later
+  // transform on this element (a rotation, say) apply around its corner
+  // instead of its center. Clear it back to the CSS default once the
+  // FLIP transition has actually finished.
   setTimeout(() => { el.style.transformOrigin = ''; }, 950);
 }
 
@@ -786,7 +808,6 @@ function startMixPlayback(){
   const flSrc = activeMixCard.dataset.flSrc;
 
   mixPlayer.classList.add('playing');
-  mixPlayerVinylSlot.classList.add('spinning');
 
   if(src){
     mixAudio.src = src;
@@ -803,8 +824,8 @@ function startMixPlayback(){
     mixPlayer.classList.add('flvideo-visible');
   }, 900));
 
-  // "the vinyl will spin for 2 seconds and then shrink" — counted from
-  // when it actually starts spinning, not from when the card was clicked
+  // 2 seconds after playback starts, the vinyl shrinks to the side and
+  // the FL Studio clip takes over its old spot
   mixPlayerTimers.push(setTimeout(() => {
     mixPlayer.classList.add('side-by-side');
   }, 2000));
@@ -814,7 +835,6 @@ function closeMixPlayer(){
   if(!activeMixCard) return;
   clearMixPlayerTimers();
   mixPlayer.classList.remove('opened', 'side-by-side', 'flvideo-visible', 'playing');
-  mixPlayerVinylSlot.classList.remove('spinning');
   mixAudio.pause(); // fires 'pause' — background track resumes via the generic ducking hook
   mixPlayerFlVideo.pause();
 
