@@ -3,6 +3,7 @@ Drop real files in here to replace gallery placeholders — filenames already ma
 - objectify-hero.png — done. The Objectify piece's thumbnail/hero image.
 - test_sphere_cleaned.ply / final_sphere.ply — done. The two real point-cloud/mesh scans shown in Objectify's interactive viewer (early test, cleaned-up final). Binary PLY with faces; final_sphere.ply also carries per-vertex color.
 - codecoach-cover.png / codecoach-demo.mp4 — done. Cover art + demo clip for the CodeCoach piece, using the reusable cover-→-demo-video viewer (see the main README's "Project gallery" section) — any future project with a cover + demo clip can reuse this same pattern by adding `data-video-piece data-demo-src="assets/projects/your-clip.mp4"` to its `<figure class="piece">`, no JS changes needed.
+- elsewhere-cover.png / elsewhere-demo.mp4 — done. Same pattern as CodeCoach, second real use of it. The source screen recording was a 213MB 120fps ProRes-ish `.mov`; re-encoded to 1512×828 @ 30fps H.264 (`ffmpeg -vf "scale=1512:828,fps=30" -c:v libx264 -crf 24`) to ~3.2MB — screen-recording content (mostly static UI) compresses extremely well, so this is a big size cut with no visible quality loss, and the original 213MB file would have exceeded GitHub's 100MB hard file-size limit outright.
 - target-speaker-placeholder.mp4 / target-speaker-poster.jpg — still a placeholder
 - sf-atlas.jpg — still a placeholder
 
