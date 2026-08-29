@@ -496,7 +496,7 @@
         <p class="about-lede" style="margin-bottom:8px">a small gallery of short films and clips I've shot — click a cover for a closer look.</p>
         <div class="about-mix-grid">
           <div class="about-mix-card" data-video>
-            <div class="about-mix-cover">
+            <div class="about-mix-cover about-mix-cover--video">
               <video muted loop playsinline preload="metadata">
                 <source src="assets/about/introduction.mp4" type="video/mp4">
               </video>
@@ -506,7 +506,7 @@
             <div class="about-mix-meta">short film · 2026</div>
           </div>
           <div class="about-mix-card" data-video>
-            <div class="about-mix-cover">
+            <div class="about-mix-cover about-mix-cover--video">
               <video muted loop playsinline preload="metadata">
                 <source src="assets/about/claude-cinematic.mp4" type="video/mp4">
               </video>
@@ -541,7 +541,7 @@
 
       <div class="wrap wrap-wide about-mixes-wrap about-mixes-wrap--center">
         <div class="about-travel-grid">
-          <div class="about-travel-card" tabindex="0" role="button" aria-expanded="false">
+          <div class="about-travel-card" tabindex="0" role="button">
             <div class="about-travel-cover">
               <img src="assets/about/machu-picchu.jpg" alt="Machu Picchu" loading="lazy">
             </div>
@@ -553,7 +553,7 @@
               <p>the Incan citadel terraced into a ridge high in the Andes, wrapped in cloud forest with the peak of Huayna Picchu standing guard behind it. Want to hike the trail up and catch it as the morning fog burns off the ruins.</p>
             </div>
           </div>
-          <div class="about-travel-card" tabindex="0" role="button" aria-expanded="false">
+          <div class="about-travel-card" tabindex="0" role="button">
             <div class="about-travel-cover">
               <img src="assets/about/monaco.jpg" alt="Monaco" loading="lazy">
             </div>
@@ -565,7 +565,7 @@
               <p>a lakeside town built right into the hillside — terracotta rooftops, a bell tower, cypress trees leaning over the water, mountains rising behind it. The kind of place worth slowing down in for a few days.</p>
             </div>
           </div>
-          <div class="about-travel-card" tabindex="0" role="button" aria-expanded="false">
+          <div class="about-travel-card" tabindex="0" role="button">
             <div class="about-travel-cover">
               <img src="assets/about/bioluminescent-lake-puerto-rico.jpg" alt="Bioluminescent lake, Puerto Rico" loading="lazy">
             </div>
@@ -577,7 +577,7 @@
               <p>a bay where microorganisms in the water glow electric blue every time it's disturbed — kayaking through it at night under the stars, leaving a trail of light behind the paddle.</p>
             </div>
           </div>
-          <div class="about-travel-card" tabindex="0" role="button" aria-expanded="false">
+          <div class="about-travel-card" tabindex="0" role="button">
             <div class="about-travel-cover">
               <img src="assets/about/guatemala-volcano.jpg" alt="Volcán de Fuego, Guatemala" loading="lazy">
             </div>
@@ -589,7 +589,7 @@
               <p>an active volcano, glowing lava streaking down its slope against a night sky full of stars, city lights scattered in the valley far below. Want to camp on the neighboring ridge and watch it erupt after dark.</p>
             </div>
           </div>
-          <div class="about-travel-card" tabindex="0" role="button" aria-expanded="false">
+          <div class="about-travel-card" tabindex="0" role="button">
             <div class="about-travel-cover">
               <img src="assets/about/petra.jpg" alt="Petra, Jordan" loading="lazy">
             </div>
@@ -601,7 +601,7 @@
               <p>the Treasury carved directly into sandstone cliffs, framed by the narrow canyon you walk through to reach it. An ancient city hidden in the rock — want to see the facade catch the light as it opens up in front of you.</p>
             </div>
           </div>
-          <div class="about-travel-card" tabindex="0" role="button" aria-expanded="false">
+          <div class="about-travel-card" tabindex="0" role="button">
             <div class="about-travel-cover">
               <img src="assets/about/pyramids-of-giza.jpg" alt="Pyramids of Giza, Egypt" loading="lazy">
             </div>
@@ -671,6 +671,9 @@
   <div class="lightbox-content">
     <button class="lightbox-close" id="lightbox-close" aria-label="close">✕</button>
     <div class="lightbox-media" id="lightbox-media"></div>
+    <div class="lightbox-video-controls" id="lightbox-video-controls" hidden>
+      <button class="lightbox-video-toggle" id="lightbox-video-toggle" type="button" aria-label="play or pause">▶</button>
+    </div>
     <div class="lightbox-caption">
       <div class="lightbox-title" id="lightbox-title"></div>
       <div class="lightbox-medium" id="lightbox-medium"></div>
@@ -689,17 +692,36 @@
   <div class="mix-player-backdrop" id="mix-player-backdrop"></div>
   <div class="mix-player-stage" id="mix-player-stage">
     <button class="mix-player-close" id="mix-player-close" type="button" aria-label="close mix player">✕</button>
-    <div class="mix-player-vinyl" id="mix-player-vinyl">
-      <div class="mix-vinyl-icon">
-        <div class="mix-vinyl-icon-label"></div>
-      </div>
-    </div>
+    <!-- js/script.js FLIP-moves the clicked card's own .mix-vinyl-icon in
+         here (and back out again on close) — this slot just provides the
+         landing size/position, it never has its own vinyl markup -->
+    <div class="mix-player-vinyl" id="mix-player-vinyl"></div>
+    <div class="mix-player-hint" id="mix-player-hint">click to play</div>
     <div class="mix-player-flvideo" id="mix-player-flvideo">
       <video id="mix-player-flvideo-el" muted playsinline loop></video>
     </div>
     <div class="mix-player-info">
       <div class="mix-player-title" id="mix-player-title"></div>
       <div class="mix-player-meta" id="mix-player-meta"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Travel photo viewer: click a photo → it FLIP-grows (the real <img>,
+     not a copy, so it can go back to its own grid cell exactly) into a
+     larger, left-shifted view, a description panel slides in on the
+     right, and the page background switches to a blurred wash of that
+     same photo. -->
+<div class="travel-viewer" id="travel-viewer" hidden>
+  <div class="travel-viewer-backdrop" id="travel-viewer-backdrop"></div>
+  <div class="travel-viewer-bg-blur" id="travel-viewer-bg-blur"></div>
+  <div class="travel-viewer-stage">
+    <button class="travel-viewer-close" id="travel-viewer-close" type="button" aria-label="close">✕</button>
+    <div class="travel-viewer-photo" id="travel-viewer-photo"></div>
+    <div class="travel-viewer-panel">
+      <div class="travel-viewer-title" id="travel-viewer-title"></div>
+      <div class="travel-viewer-meta" id="travel-viewer-meta"></div>
+      <p class="travel-viewer-desc" id="travel-viewer-desc"></p>
     </div>
   </div>
 </div>

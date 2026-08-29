@@ -405,22 +405,42 @@ const lightboxMedium = document.getElementById('lightbox-medium');
 const lightboxDesc = document.getElementById('lightbox-desc');
 const lightboxClose = document.getElementById('lightbox-close');
 const lightboxBackdrop = document.getElementById('lightbox-backdrop');
+const lightboxVideoControls = document.getElementById('lightbox-video-controls');
+const lightboxVideoToggle = document.getElementById('lightbox-video-toggle');
 
 function openLightboxWith(mediaSourceEl, title, medium, desc){
   const media = mediaSourceEl.cloneNode(true);
-  media.querySelectorAll('video').forEach(v => {
-    v.removeAttribute('loop');
-    v.removeAttribute('muted');
-    v.muted = false;
-    v.setAttribute('controls', '');
-  });
+  const video = media.querySelector('video');
+  if(video){
+    video.removeAttribute('loop');
+    video.removeAttribute('muted');
+    video.muted = false;
+    // no native controls — the glass play/pause bar below drives it instead,
+    // which also lets .lightbox-media size to a real 16:9 box instead of
+    // inheriting the photo lightbox's 4:3 (that mismatch was squeezing
+    // these videos into a near-square crop)
+  }
   lightboxMedia.innerHTML = '';
   lightboxMedia.appendChild(media);
+  lightboxMedia.classList.toggle('lightbox-media--video', !!video);
   lightboxTitle.textContent = title;
   lightboxMedium.textContent = medium;
   lightboxDesc.textContent = desc;
   lightbox.hidden = false;
   requestAnimationFrame(() => lightbox.classList.add('showing'));
+
+  lightboxVideoControls.hidden = !video;
+  if(video){
+    lightboxMedia.appendChild(lightboxVideoControls); // relocates the one shared controls bar into this box
+    const syncToggle = () => { lightboxVideoToggle.textContent = video.paused ? '▶' : '❚❚'; };
+    syncToggle();
+    video.addEventListener('play', syncToggle);
+    video.addEventListener('pause', syncToggle);
+    lightboxVideoToggle.onclick = () => {
+      if(video.paused) video.play().catch(() => {});
+      else video.pause();
+    };
+  }
 }
 
 function openLightbox(piece){
@@ -435,7 +455,7 @@ function openLightbox(piece){
 function closeLightbox(){
   lightbox.classList.remove('showing');
   lightboxMedia.querySelectorAll('video').forEach(v => v.pause()); // fires 'pause' so background music ducking resumes
-  setTimeout(() => { lightbox.hidden = true; lightboxMedia.innerHTML = ''; }, 350);
+  setTimeout(() => { lightbox.hidden = true; lightboxMedia.innerHTML = ''; lightboxVideoControls.hidden = true; }, 350);
 }
 
 document.querySelectorAll('.piece').forEach(piece => {
@@ -495,9 +515,17 @@ if(aboutMixCards.length){
   });
 }
 
-/* about page — travel cards: scroll-reveal like the mix/reel cards, plus
-   click (or Enter/Space, since they're role="button") toggles .expanded to
-   show/hide the write-up underneath. */
+/* about page — travel cards: scroll-reveal like the mix/reel cards
+   (unchanged), plus click (or Enter/Space) opens #travel-viewer — a
+   full-viewport overlay. The clicked photo itself (not a copy) FLIP-
+   grows into a larger, slightly left-shifted position, a description
+   panel slides in on the right, and the page background behind it
+   switches to a heavily blurred version of that same photo. Clicking
+   the ✕ or the backdrop reverses it: the photo FLIPs smoothly back into
+   its own grid cell. Reuses flipInto() defined below with the DJing mix
+   player, since the technique (and its "move the real element, not a
+   clone, so it can go back to exactly where it came from" requirement)
+   is identical. */
 const aboutTravelCards = document.querySelectorAll('.about-travel-card');
 if(aboutTravelCards.length){
   const aboutTravelObserver = new IntersectionObserver((entries) => {
@@ -505,20 +533,65 @@ if(aboutTravelCards.length){
       if(entry.isIntersecting) entry.target.classList.add('in-view');
     });
   }, { threshold: 0.15 });
+  aboutTravelCards.forEach(card => aboutTravelObserver.observe(card));
+}
+
+const travelViewer = document.getElementById('travel-viewer');
+const travelViewerBgBlur = document.getElementById('travel-viewer-bg-blur');
+const travelViewerPhotoSlot = document.getElementById('travel-viewer-photo');
+const travelViewerTitle = document.getElementById('travel-viewer-title');
+const travelViewerMeta = document.getElementById('travel-viewer-meta');
+const travelViewerDesc = document.getElementById('travel-viewer-desc');
+const travelViewerClose = document.getElementById('travel-viewer-close');
+const travelViewerBackdrop = document.getElementById('travel-viewer-backdrop');
+
+let activeTravelCard = null;
+let activeTravelImg = null;
+
+function openTravelViewer(card){
+  if(activeTravelCard || !travelViewer) return; // one at a time
+  activeTravelCard = card;
+  activeTravelImg = card.querySelector('.about-travel-cover img');
+  if(!activeTravelImg){ activeTravelCard = null; return; }
+
+  travelViewerBgBlur.style.backgroundImage = `url("${activeTravelImg.getAttribute('src')}")`;
+  travelViewerTitle.textContent = card.querySelector('.about-mix-title')?.textContent || '';
+  travelViewerMeta.textContent = card.querySelector('.about-mix-meta')?.textContent || '';
+  const descP = card.querySelector('.about-travel-detail p');
+  travelViewerDesc.textContent = descP ? descP.textContent : '';
+
+  travelViewer.hidden = false;
+  flipInto(activeTravelImg, travelViewerPhotoSlot);
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => travelViewer.classList.add('opened'));
+  });
+}
+
+function closeTravelViewer(){
+  if(!activeTravelCard) return;
+  travelViewer.classList.remove('opened');
+  const cover = activeTravelCard.querySelector('.about-travel-cover');
+  flipInto(activeTravelImg, cover); // send the photo back to its own card
+  setTimeout(() => { travelViewer.hidden = true; }, 600);
+  activeTravelCard = null;
+  activeTravelImg = null;
+}
+
+if(travelViewer){
   aboutTravelCards.forEach(card => {
-    aboutTravelObserver.observe(card);
-    function toggleTravelCard(){
-      const expanded = card.classList.toggle('expanded');
-      card.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-    }
-    card.addEventListener('click', toggleTravelCard);
+    card.addEventListener('click', () => openTravelViewer(card));
     card.addEventListener('keydown', (e) => {
       if(e.key === 'Enter' || e.key === ' '){
         e.preventDefault();
-        toggleTravelCard();
+        openTravelViewer(card);
       }
     });
   });
+  travelViewerClose.addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeTravelViewer();
+  });
+  travelViewerBackdrop.addEventListener('click', closeTravelViewer);
 }
 
 /* about page — shared Web Audio graph, singleton — createMediaElementSource()
@@ -591,19 +664,23 @@ if(djingCategory){
   })();
 }
 
-/* about page — DJing mix player. Clicking a mix's vinyl opens a full
-   overlay: the vinyl arrives centered and starts spinning, the mix
-   itself starts playing (ducking the background track via the same
-   generic play/pause/ended hook the Cinematography reels use — #mix-audio
-   is just another non-background media element, so nothing new is needed
-   there), the FL Studio clip slides in from the side a beat later, then
-   the vinyl docks to the bottom-left corner — still spinning — while the
-   rest of the overlay fades so the page is usable again. A card's
-   data-mix-src/data-fl-src are empty placeholders until real files exist;
-   the visual sequence still plays either way, it just skips whichever
-   media isn't there yet. */
+/* about page — DJing mix player. Clicking a mix's vinyl FLIP-moves that
+   card's own .mix-vinyl-icon into a full overlay — it grows in centered,
+   not yet spinning, with a "click to play" hint. Clicking the vinyl
+   again starts the mix (ducking the background track via the same
+   generic play/pause/ended hook the Cinematography reels use — #mix-
+   audio is just another non-background element) and starts the spin;
+   the FL Studio clip slides in from the side a beat later; after 2s of
+   spinning the vinyl docks to the bottom-left corner, still spinning,
+   while the rest of the overlay fades so the page is usable again.
+   Closing (✕, the backdrop, or clicking the docked vinyl) stops
+   everything and FLIPs the vinyl smoothly back into the exact card slot
+   it came from — the card never stays empty, it just briefly lends its
+   vinyl out. data-mix-src/data-fl-src are empty placeholders until real
+   files exist; the visual sequence still plays either way, it just
+   skips whichever media isn't there yet. */
 const mixPlayer = document.getElementById('mix-player');
-const mixPlayerVinyl = document.getElementById('mix-player-vinyl');
+const mixPlayerVinylSlot = document.getElementById('mix-player-vinyl');
 const mixPlayerFlVideo = document.getElementById('mix-player-flvideo-el');
 const mixPlayerTitle = document.getElementById('mix-player-title');
 const mixPlayerMeta = document.getElementById('mix-player-meta');
@@ -616,19 +693,67 @@ function clearMixPlayerTimers(){
   mixPlayerTimers = [];
 }
 
+/* FLIP: read the element's current on-screen box, reparent it (which
+   snaps it to the new parent's box instantly, since .mix-vinyl-icon is
+   always sized width/height:100% of whatever contains it), then apply
+   the inverse transform so it still LOOKS like it's in the old box, and
+   animate that transform back to none. Same technique used for the
+   earlier hero-vinyl dock — a transform-only FLIP composes cleanly with
+   the new parent's own CSS transitions (.mix-player-vinyl animates its
+   own top/left/width/height independently), unlike trying to animate
+   top/left directly across a position:fixed ↔ normal-flow boundary. */
+function flipInto(el, newParent){
+  const first = el.getBoundingClientRect();
+  newParent.appendChild(el);
+  const last = el.getBoundingClientRect();
+  const dx = first.left - last.left;
+  const dy = first.top - last.top;
+  const sx = first.width / last.width;
+  const sy = first.height / last.height;
+  el.style.transformOrigin = 'top left';
+  el.style.transition = 'none';
+  el.style.transform = `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`;
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      el.style.transition = 'transform 0.9s cubic-bezier(0.16, 1, 0.3, 1)';
+      el.style.transform = 'none';
+    });
+  });
+}
+
+let activeMixCard = null;
+let activeVinylIcon = null;
+
 function openMixPlayer(card){
+  if(activeMixCard) return; // one at a time
   clearMixPlayerTimers();
-  const src = card.dataset.mixSrc;
-  const flSrc = card.dataset.flSrc;
+  activeMixCard = card;
+  activeVinylIcon = card.querySelector('.mix-vinyl-icon');
+  const cover = card.querySelector('.about-mix-cover--vinyl');
+  if(cover) cover.classList.add('mix-vinyl-borrowed');
+
   mixPlayerTitle.textContent = card.dataset.mixTitle || '';
   mixPlayerMeta.textContent = card.dataset.mixMeta || '';
 
   mixPlayer.hidden = false;
-  mixPlayer.classList.remove('docked', 'flvideo-visible');
+  mixPlayer.classList.remove('docked', 'flvideo-visible', 'playing');
+
+  // move the real vinyl icon out of the card and into the overlay slot —
+  // it grows from the card's own on-screen size into the big centered one
+  flipInto(activeVinylIcon, mixPlayerVinylSlot);
+
   requestAnimationFrame(() => {
     requestAnimationFrame(() => mixPlayer.classList.add('opened'));
   });
-  mixPlayerVinyl.classList.add('spinning');
+}
+
+function startMixPlayback(){
+  if(!activeMixCard || mixPlayer.classList.contains('playing')) return;
+  const src = activeMixCard.dataset.mixSrc;
+  const flSrc = activeMixCard.dataset.flSrc;
+
+  mixPlayer.classList.add('playing');
+  mixPlayerVinylSlot.classList.add('spinning');
 
   if(src){
     mixAudio.src = src;
@@ -645,18 +770,28 @@ function openMixPlayer(card){
     mixPlayer.classList.add('flvideo-visible');
   }, 900));
 
+  // "the vinyl will spin for 2 seconds and then shrink" — counted from
+  // when it actually starts spinning, not from when the card was clicked
   mixPlayerTimers.push(setTimeout(() => {
     mixPlayer.classList.add('docked');
-  }, 2200));
+  }, 2000));
 }
 
 function closeMixPlayer(){
+  if(!activeMixCard) return;
   clearMixPlayerTimers();
-  mixPlayer.classList.remove('opened', 'docked', 'flvideo-visible');
-  mixPlayerVinyl.classList.remove('spinning');
+  mixPlayer.classList.remove('opened', 'docked', 'flvideo-visible', 'playing');
+  mixPlayerVinylSlot.classList.remove('spinning');
   mixAudio.pause(); // fires 'pause' — background track resumes via the generic ducking hook
   mixPlayerFlVideo.pause();
-  setTimeout(() => { mixPlayer.hidden = true; }, 400);
+
+  const cover = activeMixCard.querySelector('.about-mix-cover--vinyl');
+  flipInto(activeVinylIcon, cover); // send the vinyl back to its own card
+  if(cover) cover.classList.remove('mix-vinyl-borrowed');
+
+  setTimeout(() => { mixPlayer.hidden = true; }, 500);
+  activeMixCard = null;
+  activeVinylIcon = null;
 }
 
 document.querySelectorAll('.about-mix-card[data-mix]').forEach(card => {
@@ -666,11 +801,14 @@ mixPlayerClose.addEventListener('click', (e) => {
   e.stopPropagation();
   closeMixPlayer();
 });
-// clicking the docked mini vinyl re-opens the full view instead of doing nothing
-mixPlayerVinyl.addEventListener('click', () => {
+document.getElementById('mix-player-backdrop').addEventListener('click', () => {
+  if(!mixPlayer.classList.contains('playing')) closeMixPlayer();
+});
+mixPlayerVinylSlot.addEventListener('click', () => {
   if(mixPlayer.classList.contains('docked')){
-    mixPlayer.classList.remove('docked');
-    mixPlayer.classList.add('opened', 'flvideo-visible');
+    closeMixPlayer(); // "the vinyl leaves its placeholder and returns when the user is done"
+  } else if(!mixPlayer.classList.contains('playing')){
+    startMixPlayback();
   }
 });
 mixAudio.addEventListener('ended', () => closeMixPlayer());

@@ -575,8 +575,49 @@ section{margin-top:80px;}
   background:var(--bg-raised);
   border:1px solid var(--line);
   overflow:hidden;
+  position:relative;
 }
+/* videos get their real 16:9 shape here instead of inheriting the 4:3
+   default meant for photos — without this, a cloned .about-mix-cover's
+   own aspect-ratio was fighting this container's, and the video ended up
+   squeezed into a near-square box with the sides cropped off */
+.lightbox-media.lightbox-media--video{aspect-ratio:16/9;}
 .lightbox-media img, .lightbox-media video{width:100%; height:100%; object-fit:cover; display:block;}
+
+/* glass "start/stop" bar — only shown when the lightbox is playing a
+   video, sits over the bottom edge of the media */
+.lightbox-video-controls{
+  position:absolute;
+  left:50%;
+  bottom:20px;
+  transform:translateX(-50%);
+  z-index:2;
+  display:flex;
+  align-items:center;
+  padding:8px;
+  border-radius:999px;
+  background:rgba(20,20,20,0.45);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  border:1px solid rgba(255,255,255,0.18);
+  box-shadow:0 8px 24px rgba(0,0,0,0.3);
+}
+.lightbox-video-controls[hidden]{display:none;}
+.lightbox-video-toggle{
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  background:rgba(255,255,255,0.12);
+  border:1px solid rgba(255,255,255,0.25);
+  color:#fff;
+  font-size:13px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:background 0.2s var(--ease-fast);
+}
+.lightbox-video-toggle:hover{background:rgba(255,255,255,0.22);}
 .lightbox-caption{margin-top:18px;}
 .lightbox-title{font-size:18px; color:var(--text);}
 .lightbox-medium{
@@ -1116,6 +1157,9 @@ footer{
 }
 
 .about-category{position:relative; padding:100px 0 120px; overflow:hidden;}
+/* Travel's grid left a lot of empty space before the Future banner —
+   pull the next section up a bit without losing all the breathing room */
+.about-category[data-category="travel"]{padding-bottom:56px;}
 
 .about-intro-copy .section-title{color:#fff;}
 .about-lede{font-size:14px; line-height:1.8; color:var(--muted); max-width:52ch;}
@@ -1252,9 +1296,8 @@ footer{
 .about-mixes-wrap--center{text-align:center;}
 .about-mixes-wrap--center .about-lede{margin:0 auto;}
 
-/* travel — expandable cards; click/tap or Enter/Space toggles .expanded,
-   which reveals .about-travel-detail below the cover+summary. Placeholder
-   copy for now — real photos/descriptions replace it card by card. */
+/* travel — click/tap or Enter/Space opens #travel-viewer (see below) with
+   the real photo, no clone, so it can FLIP smoothly back into place. */
 .about-travel-grid{
   display:grid;
   grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));
@@ -1269,42 +1312,131 @@ footer{
   transition:opacity 0.6s var(--ease), transform 0.6s var(--ease);
 }
 .about-travel-card.in-view{opacity:1; transform:translateY(0);}
+/* flush — no border, no background box, no letterboxing. The frame just
+   matches a fixed 4:3 grid shape (object-fit:cover) so the grid itself
+   reads as a clean, consistent layout; the full uncropped photo is what
+   shows in the expanded viewer instead */
 .about-travel-cover{
   position:relative;
-  aspect-ratio:1/1;
+  aspect-ratio:4/3;
   border-radius:14px;
   overflow:hidden;
-  background:#0a0a0a;
-  backdrop-filter:blur(16px);
-  -webkit-backdrop-filter:blur(16px);
-  border:1px dashed rgba(255,255,255,0.18);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  transition:border-color 0.3s var(--ease-fast), background 0.3s var(--ease-fast);
 }
-.about-travel-card:hover .about-travel-cover,
-.about-travel-card.expanded .about-travel-cover{border-color:rgba(255,255,255,0.4);}
-/* object-fit:contain (not cover) — the square frame never crops a photo,
-   it letterboxes instead, so nothing in the shot is ever cut off */
-.about-travel-cover img{width:100%; height:100%; object-fit:contain; display:block; position:absolute; inset:0;}
+.about-travel-cover img{
+  width:100%; height:100%;
+  object-fit:cover;
+  display:block;
+  position:absolute; inset:0;
+  transition:transform 0.5s var(--ease-fast);
+}
+.about-travel-card:hover .about-travel-cover img{transform:scale(1.05);}
 .about-travel-summary{margin-top:14px; display:flex; align-items:baseline; justify-content:space-between; gap:12px;}
-.about-travel-detail{
-  overflow:hidden;
-  max-height:0;
+/* .about-travel-detail is never shown in place any more — it's just
+   where each card's description text lives, read by openTravelViewer()
+   in js/script.js and shown in #travel-viewer's side panel instead */
+.about-travel-detail{display:none;}
+
+/* travel photo viewer — full-viewport overlay. js/script.js FLIP-moves
+   the clicked card's real <img> into #travel-viewer-photo (a fixed,
+   larger, left-of-center slot) and back again on close; only a single
+   .opened class drives fade/slide-in here since there's no intermediate
+   "docked" state like the DJing mix player. */
+.travel-viewer{position:fixed; inset:0; z-index:960;}
+.travel-viewer[hidden]{display:none;}
+.travel-viewer-backdrop{
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,0.8);
   opacity:0;
-  transition:max-height 0.5s var(--ease), opacity 0.4s var(--ease), margin-top 0.5s var(--ease);
+  pointer-events:none;
+  transition:opacity 0.5s var(--ease);
 }
-.about-travel-detail p{
-  font-size:13.5px;
-  line-height:1.7;
-  color:var(--muted);
-  margin:0;
+.travel-viewer.opened .travel-viewer-backdrop{opacity:1; pointer-events:auto;}
+
+/* the blurred wash of the currently-viewed photo, behind everything */
+.travel-viewer-bg-blur{
+  position:absolute;
+  inset:-5%;
+  background-size:cover;
+  background-position:center;
+  filter:blur(70px) brightness(0.45) saturate(1.3);
+  opacity:0;
+  transition:opacity 0.7s var(--ease);
+  pointer-events:none;
 }
-.about-travel-card.expanded .about-travel-detail{
-  max-height:200px;
-  opacity:1;
-  margin-top:12px;
+.travel-viewer.opened .travel-viewer-bg-blur{opacity:0.65;}
+
+.travel-viewer-stage{position:relative; width:100%; height:100%; pointer-events:none;}
+
+.travel-viewer-close{
+  position:absolute;
+  top:24px; right:24px;
+  width:40px; height:40px;
+  border-radius:50%;
+  background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.2);
+  color:#fff;
+  font-size:15px;
+  cursor:pointer;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.3s var(--ease-fast);
+  z-index:2;
+}
+.travel-viewer.opened .travel-viewer-close{opacity:1; pointer-events:auto;}
+
+.travel-viewer-photo{
+  position:fixed;
+  top:50%;
+  left:calc(50% - 170px);
+  width:520px;
+  height:390px;
+  max-width:52vw;
+  max-height:66vh;
+  transform:translate(-50%, -50%);
+  border-radius:14px;
+  overflow:hidden;
+  box-shadow:0 30px 80px rgba(0,0,0,0.65);
+  background:#050505;
+}
+.travel-viewer-photo img{width:100%; height:100%; object-fit:contain; display:block;}
+
+.travel-viewer-panel{
+  position:absolute;
+  top:50%;
+  left:calc(50% + 220px);
+  width:320px;
+  max-width:30vw;
+  transform:translateY(-50%) translateX(24px);
+  opacity:0;
+  transition:opacity 0.5s var(--ease) 0.15s, transform 0.5s var(--ease) 0.15s;
+  pointer-events:none;
+}
+.travel-viewer.opened .travel-viewer-panel{opacity:1; transform:translateY(-50%) translateX(0);}
+.travel-viewer-title{font-family:Arial, Helvetica, sans-serif; font-weight:700; font-size:22px; color:#fff;}
+.travel-viewer-meta{font-family:var(--mono); font-size:12px; color:#999; margin-top:6px; text-transform:lowercase;}
+.travel-viewer-desc{font-size:14px; line-height:1.85; color:#ccc; margin:16px 0 0;}
+
+@media(max-width:860px){
+  .travel-viewer-photo{
+    left:50%;
+    top:42%;
+    width:80vw;
+    height:auto;
+    max-width:80vw;
+    max-height:45vh;
+    aspect-ratio:4/3;
+  }
+  .travel-viewer-panel{
+    left:50%;
+    top:auto;
+    bottom:8%;
+    width:80vw;
+    max-width:80vw;
+    transform:translateX(-50%) translateY(16px);
+    text-align:center;
+  }
+  .travel-viewer.opened .travel-viewer-panel{transform:translateX(-50%) translateY(0);}
 }
 
 /* audio-reactive border — frames the whole DJing section, not just a
@@ -1328,14 +1460,25 @@ footer{
 }
 
 /* DJing mix player — a full-viewport overlay opened by clicking a mix's
-   vinyl. js/script.js drives three states via classes on .mix-player:
-   .opened (vinyl arrives, centered, spinning), plus .flvideo-visible
-   (added a beat later, slides the FL Studio clip in from the side), then
-   .docked (vinyl shrinks to the bottom-left corner and keeps spinning
-   while everything else fades — the backdrop goes with it, so the rest
-   of the page is usable again). Ducking the background track is handled
-   by the same generic play/pause/ended delegation the Cinematography
-   reels use — #mix-audio is just another non-background media element. */
+   vinyl. js/script.js FLIP-moves the card's own .mix-vinyl-icon into
+   #mix-player-vinyl (and back again on close) and drives states via
+   classes on .mix-player:
+     .opened        — vinyl has arrived, large and centered, not yet
+                       spinning; .mix-player-hint ("click to play") shows
+     .playing        — added when the user clicks the vinyl: spin starts,
+                       the mix itself starts (ducking the background
+                       track via the same generic play/pause/ended
+                       delegation the Cinematography reels use — #mix-
+                       audio is just another non-background element)
+     .flvideo-visible — added ~900ms into .playing, slides the FL Studio
+                       clip in from the side
+     .docked         — added 2s into .playing: vinyl shrinks to the
+                       bottom-left corner and keeps spinning; the
+                       backdrop/info/FL-video fade so the page is usable
+                       again, but the vinyl itself stays fully visible
+   Clicking the docked vinyl (or the ✕, or the backdrop before playback
+   starts) closes the player — audio/video stop, and the vinyl FLIPs
+   smoothly back into the exact card slot it came from. */
 .mix-player{position:fixed; inset:0; z-index:950;}
 .mix-player[hidden]{display:none;}
 .mix-player-backdrop{
@@ -1347,6 +1490,7 @@ footer{
   transition:opacity 0.5s var(--ease);
 }
 .mix-player.opened .mix-player-backdrop{opacity:1; pointer-events:auto;}
+.mix-player.docked .mix-player-backdrop{opacity:0; pointer-events:none;}
 
 .mix-player-stage{position:relative; width:100%; height:100%; pointer-events:none;}
 
@@ -1367,28 +1511,60 @@ footer{
 }
 .mix-player.opened .mix-player-close{opacity:1; pointer-events:auto;}
 
+/* the landing slot the real vinyl icon is FLIP-moved into. top/left here
+   are always the box's own top-left corner (never a self-centering -50%
+   transform mixed with viewport-relative offsets — that combination is
+   what silently pushed the docked state off-screen in an earlier pass) */
 .mix-player-vinyl{
-  position:absolute;
-  top:50%; left:50%;
+  position:fixed;
+  top:calc(50% - 210px);
+  left:calc(50% - 210px);
   width:420px;
   height:420px;
   max-width:60vw;
   max-height:60vw;
-  transform:translate(-50%,-50%) scale(0.7);
   opacity:0;
-  transition:transform 1.1s cubic-bezier(0.16,1,0.3,1), opacity 0.6s var(--ease);
+  transition:top 1.1s cubic-bezier(0.16,1,0.3,1), left 1.1s cubic-bezier(0.16,1,0.3,1),
+    width 1.1s cubic-bezier(0.16,1,0.3,1), height 1.1s cubic-bezier(0.16,1,0.3,1),
+    opacity 0.5s var(--ease);
   pointer-events:none;
 }
 .mix-player-vinyl .mix-vinyl-icon{width:100%; height:100%;}
-.mix-player.opened .mix-player-vinyl{opacity:1; transform:translate(-50%,-50%) scale(1);}
+.mix-player.opened .mix-player-vinyl{opacity:1;}
 .mix-player-vinyl.spinning .mix-vinyl-icon{animation:mix-vinyl-spin 2.4s linear infinite;}
 @keyframes mix-vinyl-spin{from{transform:rotate(0deg);} to{transform:rotate(360deg);}}
 .mix-player.docked .mix-player-vinyl{
+  top:calc(100vh - 142px);
+  left:32px;
+  width:110px;
+  height:110px;
   opacity:1;
-  transform:translate(calc(-50vw + 90px), calc(50vh - 90px)) scale(0.22);
   pointer-events:auto;
   cursor:pointer;
 }
+
+/* subtle invitation to start playback, shown only in the brief window
+   after the vinyl arrives and before the user clicks it */
+.mix-player-hint{
+  position:absolute;
+  top:calc(50% + 232px);
+  left:50%;
+  transform:translateX(-50%);
+  font-family:var(--mono);
+  font-size:12px;
+  letter-spacing:0.1em;
+  text-transform:lowercase;
+  color:#aaa;
+  opacity:0;
+  transition:opacity 0.4s var(--ease-fast);
+  pointer-events:none;
+  animation:about-cue-bob 1.8s var(--ease) infinite;
+}
+.mix-player.opened:not(.playing) .mix-player-hint{opacity:1;}
+
+/* the card the vinyl was borrowed from — a quiet empty state, not a
+   jarring hole, while its vinyl is off playing in the overlay */
+.about-mix-cover--vinyl.mix-vinyl-borrowed{background:rgba(255,255,255,0.03);}
 
 .mix-player-flvideo{
   position:absolute;
@@ -1428,8 +1604,9 @@ footer{
   .mix-player-flvideo{left:50%; top:auto; bottom:16%; transform:translateX(-50%) translateY(30px); width:70vw; max-width:70vw;}
   .mix-player.flvideo-visible .mix-player-flvideo{transform:translateX(-50%) translateY(0);}
   .mix-player.docked .mix-player-flvideo{transform:translateX(-50%) translateY(30px);}
-  .mix-player-vinyl{width:280px; height:280px;}
-  .mix-player.docked .mix-player-vinyl{transform:translate(calc(-50vw + 70px), calc(50vh - 70px)) scale(0.26);}
+  .mix-player-vinyl{top:calc(50% - 140px); left:calc(50% - 140px); width:280px; height:280px;}
+  .mix-player-hint{top:calc(50% + 162px);}
+  .mix-player.docked .mix-player-vinyl{top:calc(100vh - 122px); left:24px; width:90px; height:90px;}
 }
 
 @media(max-width:720px){
