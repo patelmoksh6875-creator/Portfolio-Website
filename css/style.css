@@ -91,7 +91,7 @@ main{flex:1 0 auto; position:relative;}
 .hero-panel{
   position:relative;
   margin-top:-1px;
-  background:var(--sage-bg) url('../assets/hero/clouds.jpg') center/cover no-repeat;
+  background:var(--sage-bg);
   color:var(--sage-text);
   min-height:100vh;
   display:flex;
@@ -100,16 +100,6 @@ main{flex:1 0 auto; position:relative;}
   overflow:hidden;
 }
 .hero-panel .wrap{position:relative; z-index:2;}
-/* blends the photo into the next panel's near-black background — bottom
-   edge only, so it reads as a deliberate transition rather than a hard cut */
-.hero-panel::after{
-  content:'';
-  position:absolute;
-  inset:0;
-  z-index:0;
-  pointer-events:none;
-  background:linear-gradient(180deg, transparent 78%, var(--bg) 100%);
-}
 .timeline-panel{
   background:var(--bg);
   color:var(--text);
