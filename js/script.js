@@ -725,9 +725,9 @@ if(djingCategory){
       borderClock += 0.028;
       borderLevel = Math.pow((Math.sin(borderClock) + 1) / 2, 1.2);
     }
-    djingCategory.style.setProperty('--djing-border-w', `${(borderLevel * 10).toFixed(2)}px`);
-    djingCategory.style.setProperty('--djing-border-a', Math.min(1, borderLevel * 0.8).toFixed(2));
-    djingCategory.style.setProperty('--djing-glow', `${(borderLevel * 90).toFixed(1)}px`);
+    djingCategory.style.setProperty('--djing-border-w', `${(borderLevel * 22).toFixed(2)}px`);
+    djingCategory.style.setProperty('--djing-border-a', Math.min(1, borderLevel * 0.95).toFixed(2));
+    djingCategory.style.setProperty('--djing-glow', `${(borderLevel * 130).toFixed(1)}px`);
   })();
 }
 
@@ -961,9 +961,9 @@ const reactMixBorder = makeBorderReactor();
   const l = (mixAudioGraph && !mixAudio.paused)
     ? reactMixBorder(mixAudioGraph.analyser, mixAudioGraph.data)
     : 0;
-  mixPlayer.style.setProperty('--mix-border-w', `${(l * 10).toFixed(2)}px`);
-  mixPlayer.style.setProperty('--mix-border-a', Math.min(1, l * 0.8).toFixed(2));
-  mixPlayer.style.setProperty('--mix-glow', `${(l * 90).toFixed(1)}px`);
+  mixPlayer.style.setProperty('--mix-border-w', `${(l * 22).toFixed(2)}px`);
+  mixPlayer.style.setProperty('--mix-border-a', Math.min(1, l * 0.95).toFixed(2));
+  mixPlayer.style.setProperty('--mix-glow', `${(l * 130).toFixed(1)}px`);
 })();
 
 /* Objectify case-study viewer — clicking that project's own thumbnail
