@@ -504,9 +504,15 @@ section{margin-top:80px;}
 /* for a cover photo whose own aspect ratio doesn't match the shared 4:3
    box — object-fit:cover was cropping the top/bottom off; contain plus a
    little breathing room shows the whole image instead, slightly smaller
-   within the frame rather than filling and cutting it off */
+   within the frame rather than filling and cutting it off. Two variants:
+   --contain (black background) for a cover that's already black/dark
+   itself (Elsewhere); --contain-light (white background, less padding
+   so the image reads bigger) for a cover with a white background of its
+   own (Focal, sf-atlas) — a black frame around a white image looked odd. */
 .piece-media--contain{padding:20px; box-sizing:border-box; background:#000;}
 .piece-media--contain img{object-fit:contain;}
+.piece-media--contain-light{padding:6px; box-sizing:border-box; background:#fff;}
+.piece-media--contain-light img{object-fit:contain;}
 .piece-placeholder-label{
   position:absolute;
   inset:0;
