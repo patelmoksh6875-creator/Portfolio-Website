@@ -680,28 +680,43 @@ document.addEventListener('click', () => initAboutAudioGraph(), { once: true });
    per-orb DOM elements: just three CSS custom properties re-written on the
    section every frame, read by .about-djing-border's box-shadow. Reacts to
    whatever's playing on the shared #bg-audio element (or idles gently).
-   Tracks the peak of the bass/low-mid bins (where kicks and snares live)
-   with an instant attack and a hard release, and swings across the
-   border's FULL range on every hit — at rest it's basically invisible,
-   and on a hit it jumps straight to the max, so the motion is completely
-   unmistakable instead of a wobble around one shade. */
+   This is onset-based, not just "how loud is the bass right now" — it
+   tracks a slow-moving floor of the sub/kick bins and only lights up on
+   a rise ABOVE that floor, so a track with constant/sustained bass energy
+   (not just short kick transients) doesn't just sit permanently lit. Hard,
+   fast release between hits so the motion visibly snaps up and back down
+   on every beat instead of holding a sustained glow. */
+function makeBorderReactor(){
+  let floor = 0;
+  let level = 0;
+  return function(analyser, data){
+    analyser.getByteFrequencyData(data);
+    // narrow window on the lowest bins only (sub-bass/kick body), not a
+    // broad 30% slice that also catches the bassline sitting under a beat
+    const bassCount = Math.max(1, Math.floor(data.length * 0.15));
+    let peak = 0;
+    for(let i = 0; i < bassCount; i++) peak = Math.max(peak, data[i]);
+    // floor tracks the ambient/sustained bass level slowly, so it rises
+    // with a loud track but doesn't out-run a real transient
+    floor += (peak - floor) * 0.06;
+    const headroom = Math.max(1, 255 - floor);
+    const target = Math.min(1, Math.max(0, (peak - floor) / headroom) * 1.9);
+    // instant attack, hard fast release — visibly snaps up and back down
+    level = target > level ? target : level * 0.32 + target * 0.68;
+    return level;
+  };
+}
+
 const djingCategory = document.querySelector('.about-category.djing');
 if(djingCategory){
   let borderClock = 0;
   let borderLevel = 0;
+  const reactDjing = makeBorderReactor();
   (function renderDjingBorder(){
     requestAnimationFrame(renderDjingBorder);
     const playing = audioGraph && audio && !audio.paused;
-    let target;
     if(playing){
-      audioGraph.analyser.getByteFrequencyData(audioGraph.data);
-      const bassCount = Math.max(1, Math.floor(audioGraph.data.length * 0.3));
-      let peak = 0;
-      for(let i = 0; i < bassCount; i++) peak = Math.max(peak, audioGraph.data[i]);
-      target = peak / 255; // 0..1
-      // instant attack (jumps straight to the hit's level), hard release
-      // (drops back down well before the next beat instead of lingering)
-      borderLevel = target > borderLevel ? target : borderLevel * 0.5 + target * 0.5;
+      borderLevel = reactDjing(audioGraph.analyser, audioGraph.data);
     } else {
       // idle: a full 0-to-1-to-0 sweep, slow enough to actually track by eye
       borderClock += 0.028;
@@ -937,18 +952,12 @@ mixAudio.addEventListener('ended', () => closeMixPlayer());
 /* audio-reactive border on the mix player overlay itself — identical
    peak-of-bass-bins formula to the DJing section's border, but no idle
    sweep: holds at 0 whenever nothing is actually playing. */
+const reactMixBorder = makeBorderReactor();
 (function renderMixBorder(){
   requestAnimationFrame(renderMixBorder);
-  let level = 0;
-  if(mixAudioGraph && !mixAudio.paused){
-    mixAudioGraph.analyser.getByteFrequencyData(mixAudioGraph.data);
-    const bassCount = Math.max(1, Math.floor(mixAudioGraph.data.length * 0.3));
-    let peak = 0;
-    for(let i = 0; i < bassCount; i++) peak = Math.max(peak, mixAudioGraph.data[i]);
-    level = peak / 255;
-  }
-  renderMixBorder.level = level > (renderMixBorder.level || 0) ? level : (renderMixBorder.level || 0) * 0.5 + level * 0.5;
-  const l = renderMixBorder.level;
+  const l = (mixAudioGraph && !mixAudio.paused)
+    ? reactMixBorder(mixAudioGraph.analyser, mixAudioGraph.data)
+    : 0;
   mixPlayer.style.setProperty('--mix-border-w', `${(l * 16).toFixed(2)}px`);
   mixPlayer.style.setProperty('--mix-border-a', Math.min(1, l * 1.05).toFixed(2));
   mixPlayer.style.setProperty('--mix-glow', `${(l * 140).toFixed(1)}px`);
