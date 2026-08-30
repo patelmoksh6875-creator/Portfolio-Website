@@ -505,7 +505,7 @@ section{margin-top:80px;}
    box — object-fit:cover was cropping the top/bottom off; contain plus a
    little breathing room shows the whole image instead, slightly smaller
    within the frame rather than filling and cutting it off */
-.piece-media--contain{padding:20px; box-sizing:border-box;}
+.piece-media--contain{padding:20px; box-sizing:border-box; background:#000;}
 .piece-media--contain img{object-fit:contain;}
 .piece-placeholder-label{
   position:absolute;
