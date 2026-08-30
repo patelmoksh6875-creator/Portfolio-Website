@@ -784,7 +784,7 @@ footer{
   inset:-10%;
   background:linear-gradient(160deg, #ffffff, #eceae4);
   filter:blur(60px);
-  transition:opacity 0.9s ease;
+  transition:opacity 0.9s var(--ease);
 }
 .gate-bg-layer-a{opacity:1;}
 .gate-bg-layer-b{opacity:0;}
