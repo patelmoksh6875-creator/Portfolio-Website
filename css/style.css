@@ -1291,13 +1291,12 @@ footer{
 
 .about-intro-copy .section-title{color:#fff;}
 .about-lede{font-size:14px; line-height:1.8; color:var(--muted); max-width:52ch;}
-/* Travel/Future/Space are just a heading + a paragraph of body copy right
+/* Travel/Future are just a heading + a paragraph of body copy right
    under it — the shared .section-title margin-bottom (28px, tuned for
    headings that sit above a full grid/gallery) left too much air between
-   the heading and its own text here, so these three pull it in tighter */
+   the heading and its own text here, so these two pull it in tighter */
 .about-category[data-category="travel"] .about-intro-copy .section-title,
-.about-category[data-category="future"] .about-intro-copy .section-title,
-.about-category[data-category="space"] .about-intro-copy .section-title{
+.about-category[data-category="future"] .about-intro-copy .section-title{
   margin-bottom:14px;
 }
 
