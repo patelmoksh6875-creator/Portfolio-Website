@@ -19,6 +19,7 @@ Static site, no build step or framework — plain HTML/CSS/JS.
 ## Home page, below the hero
 - `.timeline-panel` is flat `var(--bg)` (no gradient) and opens with a `.home-bio` paragraph ("about me") above the timeline, which sits further down with extra top margin (`.timeline-title{margin-top:96px}`) so the two sections read as distinct, not bunched together.
 - The timeline no longer has its vertical connector line (`.timeline::before` was removed). The empty `.tl-age`/`.tl-body` divs now show a dashed underline placeholder via the `:empty` CSS pseudo-class — it's purely visual and disappears automatically the moment you type real content into them, so there's nothing to manually remove later.
+- `.skills-panel` is a plain `.panel` section after the timeline — just a `Skills.md` heading (styled the same lowercase-mono way as every other `.section-title`) and a placeholder paragraph, waiting on real skills content.
 
 ## Project gallery
 - Most `.piece` cards open the generic `#lightbox` (image/video, title, medium, description) on click — see `openLightbox()`/`openLightboxWith()` in `js/script.js`.
