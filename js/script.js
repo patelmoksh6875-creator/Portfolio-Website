@@ -683,9 +683,10 @@ document.addEventListener('click', () => initAboutAudioGraph(), { once: true });
    This is onset-based, not just "how loud is the bass right now" — it
    tracks a slow-moving floor of the sub/kick bins and only lights up on
    a rise ABOVE that floor, so a track with constant/sustained bass energy
-   (not just short kick transients) doesn't just sit permanently lit. Hard,
-   fast release between hits so the motion visibly snaps up and back down
-   on every beat instead of holding a sustained glow. */
+   (not just short kick transients) doesn't just sit permanently lit.
+   Both attack and release are smoothed (not instant) so it visibly rises
+   and falls like a wave on each beat instead of flashing on/off, and the
+   overall swing is toned down so it reads as a glow, not a strobe. */
 function makeBorderReactor(){
   let floor = 0;
   let level = 0;
@@ -700,9 +701,11 @@ function makeBorderReactor(){
     // with a loud track but doesn't out-run a real transient
     floor += (peak - floor) * 0.06;
     const headroom = Math.max(1, 255 - floor);
-    const target = Math.min(1, Math.max(0, (peak - floor) / headroom) * 1.9);
-    // instant attack, hard fast release — visibly snaps up and back down
-    level = target > level ? target : level * 0.32 + target * 0.68;
+    const target = Math.min(1, Math.max(0, (peak - floor) / headroom) * 1.3);
+    // smoothed attack (quick but not instant) and a slower, smoothed
+    // release — both ease toward the target rather than snapping to it
+    const rate = target > level ? 0.28 : 0.1;
+    level += (target - level) * rate;
     return level;
   };
 }
@@ -722,9 +725,9 @@ if(djingCategory){
       borderClock += 0.028;
       borderLevel = Math.pow((Math.sin(borderClock) + 1) / 2, 1.2);
     }
-    djingCategory.style.setProperty('--djing-border-w', `${(borderLevel * 16).toFixed(2)}px`);
-    djingCategory.style.setProperty('--djing-border-a', Math.min(1, borderLevel * 1.05).toFixed(2));
-    djingCategory.style.setProperty('--djing-glow', `${(borderLevel * 140).toFixed(1)}px`);
+    djingCategory.style.setProperty('--djing-border-w', `${(borderLevel * 10).toFixed(2)}px`);
+    djingCategory.style.setProperty('--djing-border-a', Math.min(1, borderLevel * 0.8).toFixed(2));
+    djingCategory.style.setProperty('--djing-glow', `${(borderLevel * 90).toFixed(1)}px`);
   })();
 }
 
@@ -958,9 +961,9 @@ const reactMixBorder = makeBorderReactor();
   const l = (mixAudioGraph && !mixAudio.paused)
     ? reactMixBorder(mixAudioGraph.analyser, mixAudioGraph.data)
     : 0;
-  mixPlayer.style.setProperty('--mix-border-w', `${(l * 16).toFixed(2)}px`);
-  mixPlayer.style.setProperty('--mix-border-a', Math.min(1, l * 1.05).toFixed(2));
-  mixPlayer.style.setProperty('--mix-glow', `${(l * 140).toFixed(1)}px`);
+  mixPlayer.style.setProperty('--mix-border-w', `${(l * 10).toFixed(2)}px`);
+  mixPlayer.style.setProperty('--mix-border-a', Math.min(1, l * 0.8).toFixed(2));
+  mixPlayer.style.setProperty('--mix-glow', `${(l * 90).toFixed(1)}px`);
 })();
 
 /* Objectify case-study viewer — clicking that project's own thumbnail
