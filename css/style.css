@@ -544,6 +544,16 @@ section{margin-top:80px;}
   text-transform:lowercase;
 }
 .piece-desc{font-size:13px; color:var(--muted); margin-top:14px; max-width:34ch; line-height:1.6;}
+.piece-links{margin-top:12px; display:flex; flex-direction:column; gap:4px;}
+.piece-link{
+  font-size:13px;
+  color:var(--text);
+  text-decoration:underline;
+  text-underline-offset:3px;
+  text-decoration-color:var(--line);
+  width:fit-content;
+}
+.piece-link:hover{color:var(--accent); text-decoration-color:var(--accent);}
 .in-progress-note{margin-top:80px;}
 
 @media(max-width:720px){
