@@ -680,28 +680,40 @@ document.addEventListener('click', () => initAboutAudioGraph(), { once: true });
    per-orb DOM elements: just three CSS custom properties re-written on the
    section every frame, read by .about-djing-border's box-shadow. Reacts to
    whatever's playing on the shared #bg-audio element (or idles gently).
-   This is onset-based, not just "how loud is the bass right now" — it
-   tracks a slow-moving floor of the sub/kick bins and only lights up on
-   a rise ABOVE that floor, so a track with constant/sustained bass energy
-   (not just short kick transients) doesn't just sit permanently lit.
-   Both attack and release are smoothed (not instant) so it visibly rises
-   and falls like a wave on each beat instead of flashing on/off, and the
-   overall swing is toned down so it reads as a glow, not a strobe. */
+   This is onset-based, not just "how loud is a band right now" — each of
+   the kick/snare/hat bands below tracks its own slow-moving floor and
+   only contributes once it rises ABOVE that floor, so sustained energy in
+   any one band doesn't just sit permanently lit. Splitting into three
+   bands (rather than one bass-only window) is what makes it react to the
+   whole kit — a snare hit or hi-hat alone still lights it up, not just
+   kicks. Both attack and release are smoothed (not instant) so it visibly
+   rises and falls like a wave on each hit instead of flashing on/off, and
+   the overall swing is toned down so it reads as a glow, not a strobe. */
 function makeBorderReactor(){
-  let floor = 0;
+  // three bands across the 32 bins (fftSize:64): kick/sub, snare body +
+  // snap, and hi-hats/cymbals up top — each with its own onset floor,
+  // since a snare/hat sits at a very different absolute energy than a kick
+  const bands = [
+    { from: 0, to: 0.18, floor: 0, weight: 1 },   // kick / sub-bass
+    { from: 0.18, to: 0.5, floor: 0, weight: 0.9 }, // snare body + snap
+    { from: 0.5, to: 0.95, floor: 0, weight: 0.8 }  // hi-hats / cymbals
+  ];
   let level = 0;
   return function(analyser, data){
     analyser.getByteFrequencyData(data);
-    // narrow window on the lowest bins only (sub-bass/kick body), not a
-    // broad 30% slice that also catches the bassline sitting under a beat
-    const bassCount = Math.max(1, Math.floor(data.length * 0.15));
-    let peak = 0;
-    for(let i = 0; i < bassCount; i++) peak = Math.max(peak, data[i]);
-    // floor tracks the ambient/sustained bass level slowly, so it rises
-    // with a loud track but doesn't out-run a real transient
-    floor += (peak - floor) * 0.06;
-    const headroom = Math.max(1, 255 - floor);
-    const target = Math.min(1, Math.max(0, (peak - floor) / headroom) * 1.3);
+    let target = 0;
+    for(const band of bands){
+      const from = Math.floor(data.length * band.from);
+      const to = Math.max(from + 1, Math.floor(data.length * band.to));
+      let peak = 0;
+      for(let i = from; i < to; i++) peak = Math.max(peak, data[i]);
+      // floor tracks this band's ambient/sustained level slowly, so it
+      // rises with a loud track but doesn't out-run a real transient
+      band.floor += (peak - band.floor) * 0.06;
+      const headroom = Math.max(1, 255 - band.floor);
+      const bandTarget = Math.min(1, Math.max(0, (peak - band.floor) / headroom) * 1.3) * band.weight;
+      target = Math.max(target, bandTarget);
+    }
     // smoothed attack (quick but not instant) and a slower, smoothed
     // release — both ease toward the target rather than snapping to it
     const rate = target > level ? 0.28 : 0.1;
