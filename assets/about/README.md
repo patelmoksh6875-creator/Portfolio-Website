@@ -8,12 +8,17 @@ No banner-adjacent images — the section is just the bio copy, the audio-reacti
 ## Cinematography (`.about-category[data-category="cinematography"]`)
 - comiccamera.jpg — banner background
 - cameraroll.jpg — the big film-strip photo next to the bio text (fills half the section)
-- introduction.mp4, claude-cinematic.mp4 — the two real reel videos in the gallery below (see "Gallery cards")
+- claude-cinematic.mp4 — the one real reel video in the gallery below (see "Gallery cards"). `introduction.mp4` was removed along with its card.
 
 ## Travel (`.about-category[data-category="travel"]`)
 - travel-placeholder.jpg — banner background
 - machu-picchu.jpg, monaco.jpg, bioluminescent-lake-puerto-rico.jpg, guatemala-volcano.jpg, petra.jpg, pyramids-of-giza.jpg — the six real place cards. Each is shown at `object-fit:contain` inside a square frame (not `cover`), so the whole photo is always visible, letterboxed rather than cropped.
 - To add another place: drop a photo here, add a `.about-travel-card` in `index.html` following the existing pattern, and hand me the photo — I'll write the description.
+
+## Space (`.about-category[data-category="space"]`) — new, empty placeholder
+- space-placeholder.jpg — banner background (not added yet)
+- `#space-gallery` (a `.about-travel-grid`, right below the intro copy) is an empty gallery ready for real NASA photos — drop them here and add `.about-travel-card` entries following the exact same pattern as Travel's cards (cover image + expand-on-click detail text), no JS changes needed.
+- A slot for an interactive 3d black-hole visualization sits above the gallery (see the HTML comment in `index.html`) — not built yet since there's no real scene/asset to wire up. Once you have something (a Three.js scene, a model, whatever the actual plan is), I can build the viewer around it the same way Objectify's point-cloud viewer works.
 
 ## Future (`.about-category[data-category="future"]`)
 - future-placeholder.jpg — banner background

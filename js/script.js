@@ -473,13 +473,22 @@ function openLightboxWith(mediaSourceEl, title, medium, desc){
 
 /* the video controls bar fades out after 2s of no mouse movement over the
    video, and comes right back the moment the mouse moves again — same
-   pattern as any video player's auto-hiding transport controls. */
+   pattern as any video player's auto-hiding transport controls. The
+   idle callback itself re-checks whether the pointer is actually
+   sitting over the controls (or dragging the seek handle) before hiding
+   — otherwise a user who stops moving the mouse while it's parked on
+   the bar, or mid-drag on the seek thumb, would get it yanked away
+   right as they're trying to use it. */
 let lightboxControlsIdleTimer;
 function showLightboxVideoControls(){
   if(lightboxVideoControls.hidden) return; // no video open — nothing to show
   lightboxVideoControls.classList.remove('idle');
   clearTimeout(lightboxControlsIdleTimer);
-  lightboxControlsIdleTimer = setTimeout(() => {
+  lightboxControlsIdleTimer = setTimeout(function recheck(){
+    if(lightboxVideoControls.matches(':hover') || lightboxVideoSeek.matches(':active')){
+      lightboxControlsIdleTimer = setTimeout(recheck, 500);
+      return;
+    }
     lightboxVideoControls.classList.add('idle');
   }, 2000);
 }
@@ -826,7 +835,11 @@ function showMixFlVideoControls(){
   if(mixFlVideoControls.hidden) return;
   mixFlVideoControls.classList.remove('idle');
   clearTimeout(mixFlVideoControlsIdleTimer);
-  mixFlVideoControlsIdleTimer = setTimeout(() => {
+  mixFlVideoControlsIdleTimer = setTimeout(function recheck(){
+    if(mixFlVideoControls.matches(':hover') || mixFlVideoSeek.matches(':active')){
+      mixFlVideoControlsIdleTimer = setTimeout(recheck, 500);
+      return;
+    }
     mixFlVideoControls.classList.add('idle');
   }, 2000);
 }
@@ -1152,7 +1165,11 @@ let pieceViewerControlsIdleTimer;
 function showPieceViewerVideoControls(){
   pieceViewerVideoControls.classList.remove('idle');
   clearTimeout(pieceViewerControlsIdleTimer);
-  pieceViewerControlsIdleTimer = setTimeout(() => {
+  pieceViewerControlsIdleTimer = setTimeout(function recheck(){
+    if(pieceViewerVideoControls.matches(':hover') || pieceViewerVideoSeek.matches(':active')){
+      pieceViewerControlsIdleTimer = setTimeout(recheck, 500);
+      return;
+    }
     pieceViewerVideoControls.classList.add('idle');
   }, 2000);
 }
