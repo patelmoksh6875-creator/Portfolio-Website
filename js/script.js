@@ -764,9 +764,9 @@ function makeBorderReactor(){
     vocal.env += (vTarget - vocal.env) * (vTarget > vocal.env ? 0.05 : 0.025);
 
     const target = Math.max(beatTarget, vocal.env);
-    // smoothed attack (quick but not instant) and a slower, smoothed
-    // release — both ease toward the target rather than snapping to it
-    const rate = target > level ? 0.28 : 0.1;
+    // same triggers as before, just eased in/out more gradually — a
+    // slower glide up and back down rather than a quick snap
+    const rate = target > level ? 0.16 : 0.055;
     level += (target - level) * rate;
     return level;
   };
