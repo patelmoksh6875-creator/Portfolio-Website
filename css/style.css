@@ -485,7 +485,9 @@ section{margin-top:80px;}
 .piece:nth-child(even){grid-template-columns:1fr 1.3fr;}
 .piece:nth-child(even) .piece-media{order:2;}
 .piece:nth-child(even) .piece-caption{order:1; text-align:right;}
-.piece:nth-child(even) .piece-desc{margin-left:auto;}
+.piece:nth-child(even) .piece-desc,
+.piece:nth-child(even) .piece-links{margin-left:auto;}
+.piece:nth-child(even) .piece-links{align-items:flex-end;}
 .piece-media{
   position:relative;
   aspect-ratio:4/3;
@@ -544,7 +546,11 @@ section{margin-top:80px;}
   text-transform:lowercase;
 }
 .piece-desc{font-size:13px; color:var(--muted); margin-top:14px; max-width:34ch; line-height:1.6;}
-.piece-links{margin-top:12px; display:flex; flex-direction:column; gap:4px;}
+/* sits directly underneath the description, in its own block — a clear
+   step down (not squeezed right under it, not off to the side) */
+.piece-links{margin-top:20px; display:flex; flex-direction:column; gap:6px; max-width:34ch;}
+/* not a link — just tells the user the cover art itself is clickable */
+.piece-hint{font-size:13px; font-weight:600; color:var(--text);}
 .piece-link{
   font-size:13px;
   color:var(--text);
@@ -560,7 +566,9 @@ section{margin-top:80px;}
   .piece, .piece:nth-child(even){grid-template-columns:1fr;}
   .piece:nth-child(even) .piece-media{order:0;}
   .piece:nth-child(even) .piece-caption{order:0; text-align:left;}
-  .piece:nth-child(even) .piece-desc{margin-left:0;}
+  .piece:nth-child(even) .piece-desc,
+  .piece:nth-child(even) .piece-links{margin-left:0;}
+  .piece:nth-child(even) .piece-links{align-items:flex-start;}
 }
 
 /* lightbox */
