@@ -668,7 +668,10 @@ function initAboutAudioGraph(){
     const ctx = new Ctx();
     const source = ctx.createMediaElementSource(audio);
     const analyser = ctx.createAnalyser();
-    analyser.fftSize = 64;
+    // 256 (128 bins) — coarser 64 could only really separate "bass" from
+    // "everything else"; this gives enough resolution to tell kick, snare,
+    // hi-hats, and vocal/mid range apart as distinct bands below
+    analyser.fftSize = 256;
     source.connect(analyser);
     analyser.connect(ctx.destination); // critical — without this, audio goes silent
     audioGraph = { ctx, source, analyser, data: new Uint8Array(analyser.frequencyBinCount) };
@@ -689,28 +692,42 @@ document.addEventListener('click', () => initAboutAudioGraph(), { once: true });
    per-orb DOM elements: just three CSS custom properties re-written on the
    section every frame, read by .about-djing-border's box-shadow. Reacts to
    whatever's playing on the shared #bg-audio element (or idles gently).
-   This is onset-based, not just "how loud is a band right now" — each of
-   the kick/snare/hat bands below tracks its own slow-moving floor and
-   only contributes once it rises ABOVE that floor, so sustained energy in
-   any one band doesn't just sit permanently lit. Splitting into three
-   bands (rather than one bass-only window) is what makes it react to the
-   whole kit — a snare hit or hi-hat alone still lights it up, not just
-   kicks. Both attack and release are smoothed (not instant) so it visibly
-   rises and falls like a wave on each hit instead of flashing on/off, and
-   the overall swing is toned down so it reads as a glow, not a strobe. */
+   Two independent signals feed it, and the louder one wins each frame:
+
+   1. DRUM ONSET (kick/snare/hat bands) — each band tracks its own slow
+      floor and only contributes once it rises above it, so sustained
+      energy in one band doesn't just sit permanently lit. A normal single
+      hit tops out around 1; when several bands spike together (a real
+      drop, not just one element), the extra bands stack on top of the
+      strongest one and can push past 1 — output width/glow aren't hard
+      capped at that point, so an actual drop visibly reacts harder than
+      a regular beat instead of just hitting the same ceiling.
+   2. VOCAL/MELODIC SUSTAIN — a separate slow envelope over the mid band
+      (roughly vocal range). Both its attack and release are slow instead
+      of onset-triggered, so a held note gradually raises the border and
+      eases it back down as the voice returns to normal, rather than
+      flashing per-frame like the drum bands.
+
+   Both attack and release of the final output are smoothed (not instant)
+   so it visibly rises and falls like a wave instead of flashing on/off. */
 function makeBorderReactor(){
-  // three bands across the 32 bins (fftSize:64): kick/sub, snare body +
-  // snap, and hi-hats/cymbals up top — each with its own onset floor,
+  // three drum bands across the 128 bins (fftSize:256) — kick/sub, snare
+  // body + snap, and hi-hats/cymbals — each with its own onset floor,
   // since a snare/hat sits at a very different absolute energy than a kick
   const bands = [
-    { from: 0, to: 0.18, floor: 0, weight: 1 },   // kick / sub-bass
-    { from: 0.18, to: 0.5, floor: 0, weight: 0.9 }, // snare body + snap
-    { from: 0.5, to: 0.95, floor: 0, weight: 0.8 }  // hi-hats / cymbals
+    { from: 0, to: 0.05, floor: 0, weight: 1 },     // kick / sub-bass
+    { from: 0.05, to: 0.2, floor: 0, weight: 0.9 },  // snare body + snap
+    { from: 0.2, to: 0.65, floor: 0, weight: 0.85 }  // hi-hats / cymbals
   ];
+  // vocal/melodic band (~300Hz–3.4kHz-ish at this resolution) — tracked
+  // with a slow envelope, not onset detection, so it follows the shape
+  // of a held note instead of pulsing on every frame
+  const vocal = { from: 0.02, to: 0.16, floor: 0, env: 0 };
   let level = 0;
   return function(analyser, data){
     analyser.getByteFrequencyData(data);
-    let target = 0;
+
+    let beatSum = 0, beatMax = 0;
     for(const band of bands){
       const from = Math.floor(data.length * band.from);
       const to = Math.max(from + 1, Math.floor(data.length * band.to));
@@ -720,9 +737,33 @@ function makeBorderReactor(){
       // rises with a loud track but doesn't out-run a real transient
       band.floor += (peak - band.floor) * 0.06;
       const headroom = Math.max(1, 255 - band.floor);
-      const bandTarget = Math.min(1, Math.max(0, (peak - band.floor) / headroom) * 1.3) * band.weight;
-      target = Math.max(target, bandTarget);
+      const bandTarget = Math.min(1, Math.max(0, (peak - band.floor) / headroom)) * band.weight;
+      beatSum += bandTarget;
+      beatMax = Math.max(beatMax, bandTarget);
     }
+    // the strongest band counts in full; the rest only count at half
+    // weight — a single element hitting alone stays near beatMax (~1),
+    // but several bands spiking together (a drop) pushes well past it
+    const beatTarget = beatMax + (beatSum - beatMax) * 0.5;
+
+    const vf = Math.floor(data.length * vocal.from);
+    const vt = Math.max(vf + 1, Math.floor(data.length * vocal.to));
+    let vPeak = 0;
+    for(let i = vf; i < vt; i++) vPeak = Math.max(vPeak, data[i]);
+    // MUCH slower floor than the drum bands (multi-second time constant)
+    // — it's there to normalize across quiet vs. loud tracks over time,
+    // not to react to any single note. A fast-adapting floor (like the
+    // drum bands use) would rise to meet a long held note mid-sustain and
+    // cancel it back out, which is exactly the opposite of "slowly rises
+    // and holds while the note is held."
+    vocal.floor += (vPeak - vocal.floor) * 0.004;
+    const vHeadroom = Math.max(1, 255 - vocal.floor);
+    const vTarget = Math.min(1, Math.max(0, (vPeak - vocal.floor) / vHeadroom));
+    // slow attack AND slow release — this is what makes it rise with a
+    // held note and ease back down after, instead of tracking every frame
+    vocal.env += (vTarget - vocal.env) * (vTarget > vocal.env ? 0.05 : 0.025);
+
+    const target = Math.max(beatTarget, vocal.env);
     // smoothed attack (quick but not instant) and a slower, smoothed
     // release — both ease toward the target rather than snapping to it
     const rate = target > level ? 0.28 : 0.1;
@@ -788,7 +829,10 @@ function initMixAudioGraph(){
     const ctx = new Ctx();
     const source = ctx.createMediaElementSource(mixAudio);
     const analyser = ctx.createAnalyser();
-    analyser.fftSize = 64;
+    // 256 (128 bins) — coarser 64 could only really separate "bass" from
+    // "everything else"; this gives enough resolution to tell kick, snare,
+    // hi-hats, and vocal/mid range apart as distinct bands below
+    analyser.fftSize = 256;
     source.connect(analyser);
     analyser.connect(ctx.destination); // critical — without this, the mix goes silent
     mixAudioGraph = { ctx, source, analyser, data: new Uint8Array(analyser.frequencyBinCount) };
