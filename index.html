@@ -444,38 +444,6 @@
             <div class="about-mix-title">pour it up x don't like</div>
             <div class="about-mix-meta">mashup · 2026</div>
           </div>
-          <div class="about-mix-card about-mix-card--vinyl" data-mix data-mix-src="" data-fl-src="" data-mix-title="untitled mix 03" data-mix-meta="techno · 2026">
-            <div class="about-mix-cover about-mix-cover--vinyl">
-              <div class="mix-vinyl-icon"><div class="mix-vinyl-icon-label"></div></div>
-              <button class="about-mix-play" type="button" aria-label="play mix">▶</button>
-            </div>
-            <div class="about-mix-title">untitled mix 03</div>
-            <div class="about-mix-meta">techno · 2026</div>
-          </div>
-          <div class="about-mix-card about-mix-card--vinyl" data-mix data-mix-src="" data-fl-src="" data-mix-title="untitled mix 04" data-mix-meta="club · 2026">
-            <div class="about-mix-cover about-mix-cover--vinyl">
-              <div class="mix-vinyl-icon"><div class="mix-vinyl-icon-label"></div></div>
-              <button class="about-mix-play" type="button" aria-label="play mix">▶</button>
-            </div>
-            <div class="about-mix-title">untitled mix 04</div>
-            <div class="about-mix-meta">club · 2026</div>
-          </div>
-          <div class="about-mix-card about-mix-card--vinyl" data-mix data-mix-src="" data-fl-src="" data-mix-title="untitled mix 05" data-mix-meta="deep house · 2026">
-            <div class="about-mix-cover about-mix-cover--vinyl">
-              <div class="mix-vinyl-icon"><div class="mix-vinyl-icon-label"></div></div>
-              <button class="about-mix-play" type="button" aria-label="play mix">▶</button>
-            </div>
-            <div class="about-mix-title">untitled mix 05</div>
-            <div class="about-mix-meta">deep house · 2026</div>
-          </div>
-          <div class="about-mix-card about-mix-card--vinyl" data-mix data-mix-src="" data-fl-src="" data-mix-title="untitled mix 06" data-mix-meta="afrobeat · 2026">
-            <div class="about-mix-cover about-mix-cover--vinyl">
-              <div class="mix-vinyl-icon"><div class="mix-vinyl-icon-label"></div></div>
-              <button class="about-mix-play" type="button" aria-label="play mix">▶</button>
-            </div>
-            <div class="about-mix-title">untitled mix 06</div>
-            <div class="about-mix-meta">afrobeat · 2026</div>
-          </div>
         </div>
       </div>
     </section>
@@ -704,6 +672,7 @@
 <audio id="mix-audio" preload="none"></audio>
 <div class="mix-player" id="mix-player" hidden>
   <div class="mix-player-backdrop" id="mix-player-backdrop"></div>
+  <div class="mix-player-border" id="mix-player-border" aria-hidden="true"></div>
   <div class="mix-player-stage" id="mix-player-stage">
     <button class="mix-player-close" id="mix-player-close" type="button" aria-label="close mix player">✕</button>
     <!-- js/script.js FLIP-moves the clicked card's own .mix-vinyl-icon in
@@ -713,6 +682,10 @@
     <div class="mix-player-hint" id="mix-player-hint">click to play</div>
     <div class="mix-player-flvideo" id="mix-player-flvideo">
       <video id="mix-player-flvideo-el" muted playsinline loop></video>
+      <div class="video-scrub-controls" id="mix-flvideo-controls">
+        <button class="video-scrub-toggle" id="mix-flvideo-toggle" type="button" aria-label="play or pause">▶</button>
+        <input type="range" class="video-scrub-seek" id="mix-flvideo-seek" min="0" max="100" step="0.1" value="0" aria-label="seek">
+      </div>
     </div>
     <div class="mix-player-info">
       <div class="mix-player-title" id="mix-player-title"></div>
@@ -781,6 +754,10 @@
     <div class="piece-viewer-hero" id="piece-viewer-hero"></div>
     <div class="piece-viewer-demo" id="piece-viewer-demo">
       <video id="piece-viewer-video" playsinline></video>
+      <div class="video-scrub-controls" id="piece-viewer-video-controls">
+        <button class="video-scrub-toggle" id="piece-viewer-video-toggle" type="button" aria-label="play or pause">▶</button>
+        <input type="range" class="video-scrub-seek" id="piece-viewer-video-seek" min="0" max="100" step="0.1" value="0" aria-label="seek">
+      </div>
     </div>
   </div>
 </div>

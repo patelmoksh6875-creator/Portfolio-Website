@@ -732,6 +732,34 @@ if(djingCategory){
    whichever media isn't there yet. (A continuous spin animation on the
    vinyl was tried and removed — it stuttered noticeably at the start
    before settling into a clean rotation.) */
+/* mix player — own Web Audio graph (separate singleton from the shared
+   #bg-audio one above; #mix-audio is a different <audio> element so it
+   needs its own source/analyser). Drives the same kind of audio-reactive
+   border, but on the player overlay itself, and with no idle sweep —
+   it should sit flat at 0 whenever a mix isn't actually playing. */
+let mixAudioGraph = null;
+function initMixAudioGraph(){
+  if(mixAudioGraph){
+    if(mixAudioGraph.ctx.state === 'suspended') mixAudioGraph.ctx.resume();
+    return mixAudioGraph;
+  }
+  if(!mixAudio || (typeof AudioContext === 'undefined' && typeof webkitAudioContext === 'undefined')) return null;
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    const ctx = new Ctx();
+    const source = ctx.createMediaElementSource(mixAudio);
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 64;
+    source.connect(analyser);
+    analyser.connect(ctx.destination); // critical — without this, the mix goes silent
+    mixAudioGraph = { ctx, source, analyser, data: new Uint8Array(analyser.frequencyBinCount) };
+    if(ctx.state === 'suspended') ctx.resume();
+  } catch(e) {
+    mixAudioGraph = null;
+  }
+  return mixAudioGraph;
+}
+
 const mixPlayer = document.getElementById('mix-player');
 const mixPlayerVinylSlot = document.getElementById('mix-player-vinyl');
 const mixPlayerFlVideo = document.getElementById('mix-player-flvideo-el');
@@ -739,6 +767,41 @@ const mixPlayerTitle = document.getElementById('mix-player-title');
 const mixPlayerMeta = document.getElementById('mix-player-meta');
 const mixPlayerClose = document.getElementById('mix-player-close');
 const mixAudio = document.getElementById('mix-audio');
+const mixFlVideoControls = document.getElementById('mix-flvideo-controls');
+const mixFlVideoToggle = document.getElementById('mix-flvideo-toggle');
+const mixFlVideoSeek = document.getElementById('mix-flvideo-seek');
+const mixPlayerFlVideoBox = document.getElementById('mix-player-flvideo');
+
+/* seekable scrub bar for the FL Studio clip — same pattern as the demo
+   video / lightbox scrub bars, wired once since the elements are real
+   static nodes, never cloned. */
+const syncMixFlVideoToggle = () => { mixFlVideoToggle.textContent = mixPlayerFlVideo.paused ? '▶' : '❚❚'; };
+mixPlayerFlVideo.addEventListener('play', syncMixFlVideoToggle);
+mixPlayerFlVideo.addEventListener('pause', syncMixFlVideoToggle);
+mixFlVideoToggle.addEventListener('click', () => {
+  if(mixPlayerFlVideo.paused) mixPlayerFlVideo.play().catch(() => {});
+  else mixPlayerFlVideo.pause();
+});
+mixPlayerFlVideo.addEventListener('loadedmetadata', () => {
+  if(mixPlayerFlVideo.duration) mixFlVideoSeek.max = mixPlayerFlVideo.duration;
+});
+mixPlayerFlVideo.addEventListener('timeupdate', () => {
+  if(!mixPlayerFlVideo.duration || mixFlVideoSeek.matches(':active')) return;
+  mixFlVideoSeek.value = mixPlayerFlVideo.currentTime;
+});
+mixFlVideoSeek.addEventListener('input', () => { mixPlayerFlVideo.currentTime = mixFlVideoSeek.value; });
+
+let mixFlVideoControlsIdleTimer;
+function showMixFlVideoControls(){
+  if(mixFlVideoControls.hidden) return;
+  mixFlVideoControls.classList.remove('idle');
+  clearTimeout(mixFlVideoControlsIdleTimer);
+  mixFlVideoControlsIdleTimer = setTimeout(() => {
+    mixFlVideoControls.classList.add('idle');
+  }, 2000);
+}
+mixPlayerFlVideoBox.addEventListener('mousemove', showMixFlVideoControls);
+mixPlayerFlVideoBox.addEventListener('mouseenter', showMixFlVideoControls);
 
 let mixPlayerTimers = [];
 function clearMixPlayerTimers(){
@@ -812,6 +875,7 @@ function startMixPlayback(){
   const flSrc = activeMixCard.dataset.flSrc;
 
   mixPlayer.classList.add('playing');
+  initMixAudioGraph(); // this click is a qualifying user gesture
 
   if(src){
     mixAudio.src = src;
@@ -824,6 +888,8 @@ function startMixPlayback(){
       mixPlayerFlVideo.src = flSrc;
       mixPlayerFlVideo.currentTime = 0;
       mixPlayerFlVideo.play().catch(() => {});
+      mixFlVideoSeek.value = 0;
+      showMixFlVideoControls(); // visible as soon as the clip appears, then the usual 2s idle timer takes over
     }
     mixPlayer.classList.add('flvideo-visible');
   }, 900));
@@ -841,6 +907,8 @@ function closeMixPlayer(){
   mixPlayer.classList.remove('opened', 'side-by-side', 'flvideo-visible', 'playing');
   mixAudio.pause(); // fires 'pause' — background track resumes via the generic ducking hook
   mixPlayerFlVideo.pause();
+  clearTimeout(mixFlVideoControlsIdleTimer);
+  mixFlVideoControls.classList.remove('idle');
 
   const cover = activeMixCard.querySelector('.about-mix-cover--vinyl');
   flipInto(activeVinylIcon, cover); // send the vinyl back to its own card
@@ -865,6 +933,26 @@ mixPlayerVinylSlot.addEventListener('click', () => {
   if(!mixPlayer.classList.contains('playing')) startMixPlayback();
 });
 mixAudio.addEventListener('ended', () => closeMixPlayer());
+
+/* audio-reactive border on the mix player overlay itself — identical
+   peak-of-bass-bins formula to the DJing section's border, but no idle
+   sweep: holds at 0 whenever nothing is actually playing. */
+(function renderMixBorder(){
+  requestAnimationFrame(renderMixBorder);
+  let level = 0;
+  if(mixAudioGraph && !mixAudio.paused){
+    mixAudioGraph.analyser.getByteFrequencyData(mixAudioGraph.data);
+    const bassCount = Math.max(1, Math.floor(mixAudioGraph.data.length * 0.3));
+    let peak = 0;
+    for(let i = 0; i < bassCount; i++) peak = Math.max(peak, mixAudioGraph.data[i]);
+    level = peak / 255;
+  }
+  renderMixBorder.level = level > (renderMixBorder.level || 0) ? level : (renderMixBorder.level || 0) * 0.5 + level * 0.5;
+  const l = renderMixBorder.level;
+  mixPlayer.style.setProperty('--mix-border-w', `${(l * 16).toFixed(2)}px`);
+  mixPlayer.style.setProperty('--mix-border-a', Math.min(1, l * 1.05).toFixed(2));
+  mixPlayer.style.setProperty('--mix-glow', `${(l * 140).toFixed(1)}px`);
+})();
 
 /* Objectify case-study viewer — clicking that project's own thumbnail
    FLIP-moves the real <img> (not a clone, so it can go back to the exact
@@ -1013,6 +1101,39 @@ const pieceViewerDemo = document.getElementById('piece-viewer-demo');
 const pieceViewerVideo = document.getElementById('piece-viewer-video');
 const pieceViewerClose = document.getElementById('piece-viewer-close');
 const pieceViewerBackdrop = document.getElementById('piece-viewer-backdrop');
+const pieceViewerVideoControls = document.getElementById('piece-viewer-video-controls');
+const pieceViewerVideoToggle = document.getElementById('piece-viewer-video-toggle');
+const pieceViewerVideoSeek = document.getElementById('piece-viewer-video-seek');
+
+/* seekable scrub bar for the demo video, same pattern as the lightbox's —
+   wired once since pieceViewerVideo is a real static element (never
+   cloned), unlike the lightbox's per-open clone. */
+const syncPieceViewerToggle = () => { pieceViewerVideoToggle.textContent = pieceViewerVideo.paused ? '▶' : '❚❚'; };
+pieceViewerVideo.addEventListener('play', syncPieceViewerToggle);
+pieceViewerVideo.addEventListener('pause', syncPieceViewerToggle);
+pieceViewerVideoToggle.addEventListener('click', () => {
+  if(pieceViewerVideo.paused) pieceViewerVideo.play().catch(() => {});
+  else pieceViewerVideo.pause();
+});
+pieceViewerVideo.addEventListener('loadedmetadata', () => {
+  if(pieceViewerVideo.duration) pieceViewerVideoSeek.max = pieceViewerVideo.duration;
+});
+pieceViewerVideo.addEventListener('timeupdate', () => {
+  if(!pieceViewerVideo.duration || pieceViewerVideoSeek.matches(':active')) return;
+  pieceViewerVideoSeek.value = pieceViewerVideo.currentTime;
+});
+pieceViewerVideoSeek.addEventListener('input', () => { pieceViewerVideo.currentTime = pieceViewerVideoSeek.value; });
+
+let pieceViewerControlsIdleTimer;
+function showPieceViewerVideoControls(){
+  pieceViewerVideoControls.classList.remove('idle');
+  clearTimeout(pieceViewerControlsIdleTimer);
+  pieceViewerControlsIdleTimer = setTimeout(() => {
+    pieceViewerVideoControls.classList.add('idle');
+  }, 2000);
+}
+pieceViewerDemo.addEventListener('mousemove', showPieceViewerVideoControls);
+pieceViewerDemo.addEventListener('mouseenter', showPieceViewerVideoControls);
 
 let pieceViewerActiveImg = null;
 let pieceViewerActivePiece = null;
@@ -1039,6 +1160,8 @@ function openPieceViewer(piece){
       pieceViewerVideo.src = src;
       pieceViewerVideo.currentTime = 0;
       pieceViewerVideo.play().catch(() => {}); // triggers the generic ducking hook if this clip ever has real audio
+      pieceViewerVideoSeek.value = 0;
+      showPieceViewerVideoControls(); // visible on open, then the usual 2s idle timer takes over
     }
   }, 700);
 }
@@ -1047,6 +1170,8 @@ function closePieceViewer(){
   if(!pieceViewerActiveImg) return;
   pieceViewer.classList.remove('opened', 'revealed');
   pieceViewerVideo.pause(); // fires 'pause' — resumes background music via the generic ducking hook, if it was ever ducked
+  clearTimeout(pieceViewerControlsIdleTimer);
+  pieceViewerVideoControls.classList.remove('idle');
   const cover = pieceViewerActivePiece.querySelector('.piece-media');
   flipInto(pieceViewerActiveImg, cover);
   pieceViewerActiveImg = null;

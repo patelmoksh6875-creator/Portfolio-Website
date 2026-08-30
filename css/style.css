@@ -599,9 +599,14 @@ section{margin-top:80px;}
 .lightbox-media img{width:100%; height:100%; object-fit:cover; display:block;}
 .lightbox-media video{width:100%; height:auto; object-fit:contain; display:block;}
 
-/* glass "start/stop" bar — only shown when the lightbox is playing a
-   video, sits over the bottom edge of the media */
-.lightbox-video-controls{
+/* glass "start/stop" scrub bar — shown whenever a video is playing,
+   sits over the bottom edge of the video. .lightbox-video-controls is
+   the original (Cinematography reels, inside the project lightbox);
+   .video-scrub-controls is the same thing generalized for anywhere else
+   a video needs it (project-piece demos, the DJing mix player's FL
+   Studio clip) — same look, same auto-hide-on-inactivity behavior. */
+.lightbox-video-controls,
+.video-scrub-controls{
   position:absolute;
   left:16px;
   right:16px;
@@ -620,12 +625,15 @@ section{margin-top:80px;}
   border:1px solid rgba(255,255,255,0.18);
   box-shadow:0 8px 24px rgba(0,0,0,0.3);
 }
-.lightbox-video-controls[hidden]{display:none;}
+.lightbox-video-controls[hidden],
+.video-scrub-controls[hidden]{display:none;}
 /* auto-hide after 2s of no mouse movement — toggled by js/script.js,
    fades out instead of disappearing abruptly, and never blocks clicks
    (or the seek drag) while faded since pointer-events goes with it */
-.lightbox-video-controls.idle{opacity:0; pointer-events:none;}
-.lightbox-video-toggle{
+.lightbox-video-controls.idle,
+.video-scrub-controls.idle{opacity:0; pointer-events:none;}
+.lightbox-video-toggle,
+.video-scrub-toggle{
   flex-shrink:0;
   width:34px;
   height:34px;
@@ -640,12 +648,14 @@ section{margin-top:80px;}
   justify-content:center;
   transition:background 0.2s var(--ease-fast);
 }
-.lightbox-video-toggle:hover{background:rgba(255,255,255,0.22);}
+.lightbox-video-toggle:hover,
+.video-scrub-toggle:hover{background:rgba(255,255,255,0.22);}
 
 /* the "small scroll bar at the bottom of the video" — a native range
    input restyled into a slim glass-pill scrubber, shared look with
    .mini-seek below */
-.lightbox-video-seek{
+.lightbox-video-seek,
+.video-scrub-seek{
   flex:1;
   -webkit-appearance:none;
   appearance:none;
@@ -655,7 +665,8 @@ section{margin-top:80px;}
   cursor:pointer;
   outline:none;
 }
-.lightbox-video-seek::-webkit-slider-thumb{
+.lightbox-video-seek::-webkit-slider-thumb,
+.video-scrub-seek::-webkit-slider-thumb{
   -webkit-appearance:none;
   width:13px; height:13px;
   border-radius:50%;
@@ -663,7 +674,8 @@ section{margin-top:80px;}
   cursor:pointer;
   box-shadow:0 0 0 3px rgba(255,255,255,0.15);
 }
-.lightbox-video-seek::-moz-range-thumb{
+.lightbox-video-seek::-moz-range-thumb,
+.video-scrub-seek::-moz-range-thumb{
   width:13px; height:13px;
   border-radius:50%;
   background:#fff;
@@ -671,7 +683,8 @@ section{margin-top:80px;}
   cursor:pointer;
   box-shadow:0 0 0 3px rgba(255,255,255,0.15);
 }
-.lightbox-video-seek::-moz-range-track{
+.lightbox-video-seek::-moz-range-track,
+.video-scrub-seek::-moz-range-track{
   height:4px;
   border-radius:999px;
   background:rgba(255,255,255,0.25);
@@ -1603,8 +1616,27 @@ footer{
    Only the ✕ (or the backdrop, before playback starts) closes the
    player — audio/video stop, and the vinyl FLIPs smoothly back into the
    exact card slot it came from. */
-.mix-player{position:fixed; inset:0; z-index:950;}
+.mix-player{
+  position:fixed;
+  inset:0;
+  z-index:950;
+  --mix-border-w: 0px;
+  --mix-border-a: 0;
+  --mix-glow: 0px;
+}
 .mix-player[hidden]{display:none;}
+/* the same audio-reactive border technique as the page's DJing section
+   (.about-djing-border), reacting to the mix's own audio instead of the
+   background track — only visible once a mix is actually playing */
+.mix-player-border{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:1;
+  box-shadow:
+    inset 0 0 0 var(--mix-border-w) rgba(255,255,255,var(--mix-border-a)),
+    inset 0 0 var(--mix-glow) rgba(255,255,255,calc(var(--mix-border-a) * 0.6));
+}
 .mix-player-backdrop{
   position:absolute;
   inset:0;
@@ -1947,6 +1979,7 @@ footer{
 .piece-viewer.revealed .piece-viewer-hero{max-height:180px;}
 
 .piece-viewer-demo{
+  position:relative;
   width:min(880px, 90vw);
   max-height:66vh;
   border-radius:14px;
