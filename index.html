@@ -19,16 +19,6 @@
     <div class="gate-mark">♪ choose a track</div>
 
     <div class="gate-carousel" id="gate-carousel">
-      <div class="gate-card" data-src="assets/audio/leather-coat.mp3" data-title="leather coat" data-artist="don toliver">
-        <div class="gate-card-visual">
-          <div class="gate-art">
-            <img src="assets/audio/leather-coat.jpg" alt="leather coat">
-            <button class="gate-play" type="button" aria-label="preview leather coat">▶</button>
-          </div>
-          <div class="gate-card-title">leather coat</div>
-          <div class="gate-card-artist">don toliver</div>
-        </div>
-      </div>
       <div class="gate-card" data-src="assets/audio/lost.mp3" data-title="lost" data-artist="frank ocean">
         <div class="gate-card-visual">
           <div class="gate-art">
@@ -67,6 +57,16 @@
           </div>
           <div class="gate-card-title">smooth operator</div>
           <div class="gate-card-artist">sade</div>
+        </div>
+      </div>
+      <div class="gate-card" data-src="assets/audio/leather-coat.mp3" data-title="leather coat" data-artist="don toliver">
+        <div class="gate-card-visual">
+          <div class="gate-art">
+            <img src="assets/audio/leather-coat.jpg" alt="leather coat">
+            <button class="gate-play" type="button" aria-label="preview leather coat">▶</button>
+          </div>
+          <div class="gate-card-title">leather coat</div>
+          <div class="gate-card-artist">don toliver</div>
         </div>
       </div>
       <div class="gate-card" data-src="assets/audio/siesta-freestyle.mp3" data-title="siesta freestyle" data-artist="lewis ofman feat. alicia te quiero">
@@ -254,24 +254,20 @@
         </figcaption>
       </figure>
 
-      <figure class="piece">
-        <div class="piece-media piece-media-video">
-          <span class="piece-placeholder-label">video coming soon</span>
-          <video muted loop playsinline preload="none" poster="assets/projects/target-speaker-poster.jpg">
-            <source src="assets/projects/target-speaker-placeholder.mp4" type="video/mp4">
-          </video>
+      <figure class="piece" data-video-piece data-demo-src="assets/projects/focal-demo.mp4">
+        <div class="piece-media piece-media--contain">
+          <img src="assets/projects/focal-cover.png" alt="Focal" loading="lazy">
         </div>
         <figcaption class="piece-caption">
-          <div class="piece-title">target speaker extraction</div>
+          <div class="piece-title">Focal</div>
           <div class="piece-medium">audio ml · 2026</div>
           <div class="piece-desc">isolating a single voice from crowd audio using a target-speaker separation model.</div>
         </figcaption>
       </figure>
 
-      <figure class="piece">
-        <div class="piece-media">
-          <span class="piece-placeholder-label">image coming soon</span>
-          <img src="assets/projects/sf-atlas.jpg" alt="sf ai & vc atlas" loading="lazy" onerror="this.style.display='none'">
+      <figure class="piece" data-video-piece data-demo-src="assets/projects/sf-atlas-demo.mp4">
+        <div class="piece-media piece-media--contain">
+          <img src="assets/projects/sf-atlas-cover.jpg" alt="sf ai & vc atlas" loading="lazy">
         </div>
         <figcaption class="piece-caption">
           <div class="piece-title">sf ai &amp; vc atlas</div>

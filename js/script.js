@@ -392,7 +392,11 @@ gateEnterBtn.addEventListener('click', () => {
 
 showMusicGate();
 if(!gate.hidden){
-  gateCarousel.scrollLeft = gateCards[0].offsetLeft + gateCards[0].offsetWidth / 2 - gateCarousel.clientWidth / 2;
+  // opens centered on the middle card (leather coat) instead of the
+  // first one, so there are tracks visible on both sides right away
+  gateActiveIndex = Math.floor(gateCards.length / 2);
+  const startCard = gateCards[gateActiveIndex];
+  gateCarousel.scrollLeft = startCard.offsetLeft + startCard.offsetWidth / 2 - gateCarousel.clientWidth / 2;
   updateGateBackground();
   updateCarouselTransforms();
 } else {
