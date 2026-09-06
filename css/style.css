@@ -344,7 +344,7 @@ h1 em{font-style:italic; color:var(--muted);}
   height:15px;
   border-bottom:1px dashed var(--muted);
 }
-.tl-body{font-size:19px; line-height:1.5; color:var(--text); max-width:46ch; min-height:1.4em;}
+.tl-body{font-size:12px; line-height:1.5; color:var(--text); max-width:46ch; min-height:1.4em;}
 .tl-body:empty{
   display:block;
   width:100%;
