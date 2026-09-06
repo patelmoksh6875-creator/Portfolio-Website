@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>moksh patel — portfolio</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="music-gate" hidden>
+  <div class="gate-bg">
+    <div class="gate-bg-layer gate-bg-layer-a"></div>
+    <div class="gate-bg-layer gate-bg-layer-b"></div>
+    <div class="gate-bg-scrim"></div>
+  </div>
+
+  <div class="gate-content">
+    <div class="gate-mark">♪ choose a track</div>
+
+    <div class="gate-carousel" id="gate-carousel">
+      <div class="gate-card" data-src="assets/audio/lost.mp3" data-title="lost" data-artist="frank ocean">
+        <div class="gate-card-visual">
+          <div class="gate-art">
+            <img src="assets/audio/lost.png" alt="lost">
+            <button class="gate-play" type="button" aria-label="preview lost">▶</button>
+          </div>
+          <div class="gate-card-title">lost</div>
+          <div class="gate-card-artist">frank ocean</div>
+        </div>
+      </div>
+      <div class="gate-card" data-src="assets/audio/missing.mp3" data-title="missing" data-artist="todd terry club mix">
+        <div class="gate-card-visual">
+          <div class="gate-art">
+            <img src="assets/audio/missing.jpg" alt="missing">
+            <button class="gate-play" type="button" aria-label="preview missing">▶</button>
+          </div>
+          <div class="gate-card-title">missing</div>
+          <div class="gate-card-artist">todd terry club mix</div>
+        </div>
+      </div>
+      <div class="gate-card" data-src="assets/audio/serenade.mp3" data-title="serenade" data-artist="">
+        <div class="gate-card-visual">
+          <div class="gate-art">
+            <img src="assets/audio/serenade.jpg" alt="serenade">
+            <button class="gate-play" type="button" aria-label="preview serenade">▶</button>
+          </div>
+          <div class="gate-card-title">serenade</div>
+          <div class="gate-card-artist">ferdi</div>
+        </div>
+      </div>
+      <div class="gate-card" data-src="assets/audio/smooth-operator.mp3" data-title="smooth operator" data-artist="sade">
+        <div class="gate-card-visual">
+          <div class="gate-art">
+            <img src="assets/audio/smooth-operator.jpg" alt="smooth operator">
+            <button class="gate-play" type="button" aria-label="preview smooth operator">▶</button>
+          </div>
+          <div class="gate-card-title">smooth operator</div>
+          <div class="gate-card-artist">sade</div>
+        </div>
+      </div>
+      <div class="gate-card" data-src="assets/audio/leather-coat.mp3" data-title="leather coat" data-artist="don toliver">
+        <div class="gate-card-visual">
+          <div class="gate-art">
+            <img src="assets/audio/leather-coat.jpg" alt="leather coat">
+            <button class="gate-play" type="button" aria-label="preview leather coat">▶</button>
+          </div>
+          <div class="gate-card-title">leather coat</div>
+          <div class="gate-card-artist">don toliver</div>
+        </div>
+      </div>
+      <div class="gate-card" data-src="assets/audio/siesta-freestyle.mp3" data-title="siesta freestyle" data-artist="lewis ofman feat. alicia te quiero">
+        <div class="gate-card-visual">
+          <div class="gate-art">
+            <img src="assets/audio/siesta-freestyle.jpg" alt="siesta freestyle">
+            <button class="gate-play" type="button" aria-label="preview siesta freestyle">▶</button>
+          </div>
+          <div class="gate-card-title">siesta freestyle</div>
+          <div class="gate-card-artist">lewis ofman feat. alicia te quiero</div>
+        </div>
+      </div>
+      <div class="gate-card" data-src="assets/audio/the-color-violet.mp3" data-title="the color violet" data-artist="tory lanez">
+        <div class="gate-card-visual">
+          <div class="gate-art">
+            <img src="assets/audio/the-color-violet.jpg" alt="the color violet">
+            <button class="gate-play" type="button" aria-label="preview the color violet">▶</button>
+          </div>
+          <div class="gate-card-title">the color violet</div>
+          <div class="gate-card-artist">tory lanez</div>
+        </div>
+      </div>
+      <div class="gate-card" data-src="assets/audio/magic.mp3" data-title="magic" data-artist="">
+        <div class="gate-card-visual">
+          <div class="gate-art">
+            <img src="assets/audio/magic.jpg" alt="magic">
+            <button class="gate-play" type="button" aria-label="preview magic">▶</button>
+          </div>
+          <div class="gate-card-title">magic</div>
+          <div class="gate-card-artist"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="gate-player">
+      <button class="gate-player-btn" id="gate-prev" type="button" aria-label="previous track">⏮</button>
+      <button class="gate-player-btn gate-player-play" id="gate-preview-toggle" type="button" aria-label="play or pause preview">▶</button>
+      <button class="gate-player-btn" id="gate-next" type="button" aria-label="next track">⏭</button>
+      <div class="gate-player-info">
+        <div class="gate-player-title" id="gate-player-title">leather coat</div>
+        <div class="gate-player-artist" id="gate-player-artist">don toliver</div>
+      </div>
+      <button class="gate-enter" id="gate-enter" type="button">enter →</button>
+    </div>
+
+    <div class="gate-hint">tap ▶ to preview a track, then enter to continue</div>
+    <button class="gate-skip" id="gate-skip" type="button">or enter without sound</button>
+  </div>
+</div>
+
+<audio id="bg-audio" preload="none"></audio>
+
+<div id="mini-player" class="mini-player" hidden>
+  <div class="mini-player-pill" id="mini-player-pill">
+    <button class="mini-player-toggle" id="mini-player-toggle" aria-label="play or pause">❚❚</button>
+    <span class="mini-player-title" id="mini-player-title">—</span>
+  </div>
+
+  <div class="mini-player-expanded">
+    <button class="mini-collapse" id="mini-collapse" type="button" aria-label="collapse player">✕</button>
+    <div class="mini-art"><img id="mini-art-img" src="" alt=""></div>
+    <div class="mini-expanded-title" id="mini-expanded-title">—</div>
+    <div class="mini-expanded-artist" id="mini-expanded-artist"></div>
+    <input type="range" class="mini-seek" id="mini-seek" min="0" max="100" step="0.1" value="0" aria-label="seek">
+    <div class="mini-controls">
+      <button class="mini-control-btn" id="mini-prev" type="button" aria-label="previous track">⏮</button>
+      <button class="mini-control-btn mini-control-play" id="mini-play" type="button" aria-label="play or pause">❚❚</button>
+      <button class="mini-control-btn" id="mini-next" type="button" aria-label="next track">⏭</button>
+    </div>
+  </div>
+</div>
+
+<header>
+  <div class="wrap header-inner">
+    <a href="#" class="logo" onclick="showPage('home');return false;">moksh patel</a>
+    <nav>
+      <a href="#" data-page="projects" onclick="showPage('projects');return false;">projects</a>
+      <a href="#" data-page="blog" onclick="showPage('blog');return false;">blog</a>
+      <a href="#" data-page="braindump" onclick="showPage('braindump');return false;">brain dump</a>
+      <a href="#" data-page="about" onclick="showPage('about');return false;">about</a>
+      <a href="#" data-page="contact" onclick="showPage('contact');return false;">contact</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <!-- HOME -->
+  <div class="page active" id="page-home">
+    <section class="panel hero-panel poster-hero">
+      <div class="hero-palette">
+        <span style="background:var(--sage-bg)"></span>
+        <span style="background:var(--bg)"></span>
+        <span style="background:var(--sage-muted)"></span>
+        <span style="background:var(--accent)"></span>
+        <span style="background:var(--text)"></span>
+      </div>
+
+      <div class="wrap poster-wrap">
+        <div class="poster-emblem">
+          <span>M</span><span>O</span><span>K</span><span>S</span><span>H</span>
+        </div>
+
+        <div class="poster-corner poster-corner-left">
+          <span>(2026)</span>
+          <span class="poster-arrow">▼</span>
+        </div>
+
+        <div class="poster-main">
+          <h1 class="poster-name">MOKSH PATEL</h1>
+          <div class="poster-tag">|developer|</div>
+          <p class="poster-def">future vision · applied ai · problem solver</p>
+        </div>
+
+        <div class="poster-est">est. 2010</div>
+
+        <div class="poster-quote">
+          <p>“ideating, building fast, showcase, repeat. doing things that actually matter”</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel timeline-panel">
+      <div class="wrap">
+        <div class="section-title">about me</div>
+        <p class="home-bio">
+          I'm Moksh Patel, a 16 year old ai enthusiast looking to get ahead for the future. Located in New Orleans.
+          I care about building systems that actually solve a real problem and make life easier.
+          Most of my week goes into learning ai and applying it in ways that make me efficient or making other efficient.
+          Outside of that, I like to showcase my creativety - cinematography, music production and mixing music, pottery, and learning about space and creating artwork on it
+          This site is basically my running logbook for whatever I'm building next — take a look around.
+        </p>
+
+        <div class="section-title timeline-title">over the years</div>
+        <div class="timeline">
+          <div class="tl-item">
+            <div class="tl-marker"><span class="tl-dot"></span></div>
+            <div class="tl-content">
+              <div class="tl-age"></div>
+              <div class="tl-body"></div>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-marker"><span class="tl-dot"></span></div>
+            <div class="tl-content">
+              <div class="tl-age"></div>
+              <div class="tl-body"></div>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-marker"><span class="tl-dot"></span></div>
+            <div class="tl-content">
+              <div class="tl-age"></div>
+              <div class="tl-body"></div>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-marker"><span class="tl-dot"></span></div>
+            <div class="tl-content">
+              <div class="tl-age"></div>
+              <div class="tl-body"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel skills-panel">
+      <div class="wrap">
+        <div class="section-title">Skills.md</div>
+        <p class="home-bio">
+          add your skills here — languages, frameworks, tools, whatever's actually worth listing. replace this placeholder with the real breakdown.
+        </p>
+      </div>
+    </section>
+  </div>
+
+  <!-- PROJECTS -->
+  <div class="page" id="page-projects">
+   <div class="page-inner"><div class="wrap wrap-wide">
+    <span class="eyebrow">projects</span>
+    <h1>things i've built.</h1>
+    <p class="lede">a small gallery — click a piece for a closer look.</p>
+
+    <div class="gallery">
+      <figure class="piece" id="objectify-piece" data-custom-viewer>
+        <div class="piece-media">
+          <img src="assets/projects/objectify-hero.png" alt="Objectify — 3d scanner pipeline" loading="lazy">
+        </div>
+        <figcaption class="piece-caption">
+          <div class="piece-title">3d scanner pipeline</div>
+          <div class="piece-medium">computer vision · 2026</div>
+          <div class="piece-desc">Objectify — photogrammetry via COLMAP, turning a set of handheld photos into a dense 3d reconstruction, no LiDAR involved. That was also the main limitation: without a depth sensor providing ground-truth, the pipeline depended entirely on feature-matched projections across photos, and those projections weren't always reliable — texture-poor or highly complex objects would throw off the matching enough that they didn't reconstruct cleanly, if at all. Click through to see an early test scan next to the cleaned-up final result — both are real point clouds from the pipeline, not renders, and you can drag to turn them.</div>
+          <div class="piece-links">
+            <a class="piece-link" href="https://github.com/patelmoksh6875-creator/Scanner" target="_blank" rel="noopener" onclick="event.stopPropagation()">Click to see GitHub</a>
+          </div>
+        </figcaption>
+      </figure>
+
+      <figure class="piece" data-video-piece data-demo-src="assets/projects/focal-demo.mp4">
+        <div class="piece-media piece-media--contain-light">
+          <img src="assets/projects/focal-cover.png" alt="Focal" loading="lazy">
+        </div>
+        <figcaption class="piece-caption">
+          <div class="piece-title">Focal</div>
+          <div class="piece-medium">audio ml · 2026</div>
+          <div class="piece-desc">isolating a single voice from crowd audio using a target-speaker separation model.</div>
+          <div class="piece-links">
+            <div class="piece-hint">Click photo for demo video</div>
+            <a class="piece-link" href="https://github.com/patelmoksh6875-creator/Focal" target="_blank" rel="noopener" onclick="event.stopPropagation()">Click to see GitHub</a>
+          </div>
+        </figcaption>
+      </figure>
+
+      <figure class="piece" data-video-piece data-demo-src="assets/projects/sf-atlas-demo.mp4">
+        <div class="piece-media piece-media--contain-light" style="background:#d5d3d6">
+          <img src="assets/projects/sf-atlas-cover.png" alt="sf ai & vc atlas" loading="lazy">
+        </div>
+        <figcaption class="piece-caption">
+          <div class="piece-title">sf ai &amp; vc atlas</div>
+          <div class="piece-medium">web · 2026</div>
+          <div class="piece-desc">a spatial map of SF's AI scene — labs, offices, and the investors funding them.</div>
+          <div class="piece-links">
+            <div class="piece-hint">Click photo for demo video</div>
+            <a class="piece-link" href="https://sf-atlas-sandy.vercel.app/" target="_blank" rel="noopener" onclick="event.stopPropagation()">Click to try tool</a>
+          </div>
+        </figcaption>
+      </figure>
+
+      <figure class="piece" data-video-piece data-demo-src="assets/projects/codecoach-demo.mp4">
+        <div class="piece-media">
+          <img src="assets/projects/codecoach-cover.png" alt="CodeCoach" loading="lazy">
+        </div>
+        <figcaption class="piece-caption">
+          <div class="piece-title">codecoach</div>
+          <div class="piece-medium">web · 2026</div>
+          <div class="piece-desc">an in-browser AI code tutor that walks through a learner's own code, not a canned example.</div>
+          <div class="piece-links">
+            <div class="piece-hint">Click photo for demo video</div>
+            <a class="piece-link" href="https://code-coach-nu.vercel.app/" target="_blank" rel="noopener" onclick="event.stopPropagation()">Click to try tool</a>
+            <a class="piece-link" href="https://github.com/patelmoksh6875-creator/CodeCoach" target="_blank" rel="noopener" onclick="event.stopPropagation()">Click to see GitHub</a>
+          </div>
+        </figcaption>
+      </figure>
+
+      <figure class="piece" data-video-piece data-demo-src="assets/projects/elsewhere-demo.mp4">
+        <div class="piece-media piece-media--contain">
+          <img src="assets/projects/elsewhere-cover.png" alt="Elsewhere" loading="lazy">
+        </div>
+        <figcaption class="piece-caption">
+          <div class="piece-title">elsewhere</div>
+          <div class="piece-medium">web · 2026</div>
+          <div class="piece-desc">a music player built around place instead of genre — every city or vibe gets its own curated soundtrack, from Monaco's old-money glide to wherever else you'd rather be.</div>
+          <div class="piece-links">
+            <div class="piece-hint">Click photo for demo video</div>
+            <a class="piece-link" href="https://elsewhere-ruby.vercel.app/" target="_blank" rel="noopener" onclick="event.stopPropagation()">Click to try tool</a>
+          </div>
+        </figcaption>
+      </figure>
+    </div>
+
+    <section class="in-progress-note">
+      <div class="section-title">in progress</div>
+      <p class="lede" style="color:var(--muted)">tbd</p>
+    </section>
+   </div></div>
+  </div>
+
+  <!-- BLOG -->
+  <div class="page" id="page-blog">
+   <div class="page-inner"><div class="wrap">
+    <span class="eyebrow">blog</span>
+    <h1>writing.</h1>
+    <p class="lede">a place where i showcase my thoughts and dump my brain.</p>
+
+    <section>
+      <div class="row-list">
+        <div class="blog-item">
+          <button class="row blog-row" type="button">
+            <div class="row-num">01</div>
+            <div class="row-main">
+              <div class="row-title">clean builds aren't proof of correctness</div>
+            </div>
+            <div class="row-meta">2026</div>
+            <span class="blog-toggle">+</span>
+          </button>
+          <div class="blog-drop">
+            <p class="blog-drop-placeholder">add your article here — replace this placeholder with the full post.</p>
+          </div>
+        </div>
+        <div class="blog-item">
+          <button class="row blog-row" type="button">
+            <div class="row-num">02</div>
+            <div class="row-main">
+              <div class="row-title">why live triangulation falls apart</div>
+            </div>
+            <div class="row-meta">2026</div>
+            <span class="blog-toggle">+</span>
+          </button>
+          <div class="blog-drop">
+            <p class="blog-drop-placeholder">add your article here — replace this placeholder with the full post.</p>
+          </div>
+        </div>
+        <div class="blog-item">
+          <button class="row blog-row" type="button">
+            <div class="row-num">03</div>
+            <div class="row-main">
+              <div class="row-title">it wasn't the model, it was the preprocessing</div>
+            </div>
+            <div class="row-meta">2026</div>
+            <span class="blog-toggle">+</span>
+          </button>
+          <div class="blog-drop">
+            <p class="blog-drop-placeholder">add your article here — replace this placeholder with the full post.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+   </div></div>
+  </div>
+
+  <!-- BRAIN DUMP -->
+  <div class="page" id="page-braindump">
+   <div class="page-inner"><div class="wrap">
+    <span class="eyebrow">brain dump</span>
+    <h1>unfiltered.</h1>
+    <p class="lede">whatever's rattling around up there, dropped here as-is — read-only, updated by me only.</p>
+
+    <div class="dump-list">
+      <div class="dump-entry">
+        <div class="dump-date">month day, 2026</div>
+        <p class="dump-text">add a thought here — replace this placeholder with whatever's actually on your mind.</p>
+      </div>
+      <div class="dump-entry">
+        <div class="dump-date">month day, 2026</div>
+        <p class="dump-text">add a thought here — replace this placeholder with whatever's actually on your mind.</p>
+      </div>
+      <div class="dump-entry">
+        <div class="dump-date">month day, 2026</div>
+        <p class="dump-text">add a thought here — replace this placeholder with whatever's actually on your mind.</p>
+      </div>
+    </div>
+   </div></div>
+  </div>
+
+  <!-- ABOUT -->
+  <div class="page" id="page-about">
+    <section class="about-page-intro">
+      <div class="wrap wrap-wide about-page-intro-inner">
+        <div class="about-page-intro-eyebrow">about</div>
+        <h2 class="about-page-intro-title">here are some things I like doing<br>in my free time when I'm not coding.</h2>
+      </div>
+    </section>
+
+    <section class="about-banner" style="background-image:url('assets/about/dj-mixer.jpg')">
+      <div class="about-banner-overlay"></div>
+      <div class="about-banner-copy">
+        <div class="about-eyebrow">category 01</div>
+        <h1 class="about-banner-title">DJING</h1>
+        <div class="about-banner-sub">music production</div>
+        <div class="about-scroll-cue">scroll ↓</div>
+      </div>
+    </section>
+
+    <section class="about-category djing" data-category="djing">
+      <div class="about-djing-border" id="about-djing-border" aria-hidden="true"></div>
+
+      <div class="wrap wrap-wide">
+        <div class="about-intro-copy about-intro-copy--center">
+          <div class="section-title">behind the decks</div>
+          <p class="about-lede">
+            add a short bio here — how you got into DJing and music production, what gear you use, what genres you gravitate toward.
+            replace this placeholder with your real story.
+          </p>
+        </div>
+      </div>
+
+      <div class="wrap wrap-wide about-mixes-wrap">
+        <div class="section-title">mixes</div>
+        <p class="about-lede" style="margin-bottom:8px">a small gallery of sets I've recorded — click a cover for a closer look.</p>
+        <div class="about-mix-grid">
+          <div class="about-mix-card about-mix-card--vinyl" data-mix data-mix-src="assets/about/mix-01.mp3" data-fl-src="assets/about/mix-01-flstudio.mp4" data-mix-title="meri zindagi hai tu x raindance" data-mix-meta="mashup · 2026">
+            <div class="about-mix-cover about-mix-cover--vinyl">
+              <div class="mix-vinyl-icon"><div class="mix-vinyl-icon-label"></div></div>
+              <button class="about-mix-play" type="button" aria-label="play mix">▶</button>
+            </div>
+            <div class="about-mix-title">meri zindagi hai tu x raindance</div>
+            <div class="about-mix-meta">mashup · 2026</div>
+          </div>
+          <div class="about-mix-card about-mix-card--vinyl" data-mix data-mix-src="assets/about/mix-02.mp3" data-fl-src="assets/about/mix-02-flstudio.mp4" data-mix-title="pour it up x don't like" data-mix-meta="mashup · 2026">
+            <div class="about-mix-cover about-mix-cover--vinyl">
+              <div class="mix-vinyl-icon"><div class="mix-vinyl-icon-label"></div></div>
+              <button class="about-mix-play" type="button" aria-label="play mix">▶</button>
+            </div>
+            <div class="about-mix-title">pour it up x don't like</div>
+            <div class="about-mix-meta">mashup · 2026</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="about-banner" style="background-image:url('assets/about/comiccamera.jpg')">
+      <div class="about-banner-overlay"></div>
+      <div class="about-banner-copy">
+        <div class="about-eyebrow">category 02</div>
+        <h1 class="about-banner-title">CINEMATOGRAPHY</h1>
+        <div class="about-banner-sub">short films &amp; visuals</div>
+        <div class="about-scroll-cue">scroll ↓</div>
+      </div>
+    </section>
+
+    <section class="about-category" data-category="cinematography">
+      <div class="wrap wrap-wide">
+        <div class="about-cinema-hero">
+          <div class="about-intro-copy">
+            <div class="section-title">behind the lens</div>
+            <p class="about-lede">
+              add a short bio here — how you got into shooting, what gear you use, what stories or styles you gravitate toward.
+              replace this placeholder with your real story.
+            </p>
+          </div>
+          <div class="about-cinema-roll">
+            <img src="assets/about/cameraroll.jpg" alt="" onerror="this.parentElement.style.display='none'">
+          </div>
+        </div>
+      </div>
+
+      <div class="wrap wrap-wide about-mixes-wrap about-mixes-wrap--center">
+        <div class="section-title">reels</div>
+        <p class="about-lede" style="margin-bottom:8px">a small gallery of short films and clips I've shot — click a cover for a closer look.</p>
+        <div class="about-mix-grid">
+          <div class="about-mix-card" data-video>
+            <div class="about-mix-cover about-mix-cover--video">
+              <video muted loop playsinline preload="metadata">
+                <source src="assets/about/claude-cinematic.mp4" type="video/mp4">
+              </video>
+            </div>
+            <div class="about-mix-title">claude</div>
+            <div class="about-mix-meta">cinematic · 2026</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="about-banner" style="background-image:url('assets/about/travel-placeholder.jpg')">
+      <div class="about-banner-overlay"></div>
+      <div class="about-banner-copy">
+        <div class="about-eyebrow">category 03</div>
+        <h1 class="about-banner-title">TRAVEL</h1>
+        <div class="about-banner-sub">places I want to go</div>
+        <div class="about-scroll-cue">scroll ↓</div>
+      </div>
+    </section>
+
+    <section class="about-category" data-category="travel">
+      <div class="wrap wrap-wide">
+        <div class="about-intro-copy about-intro-copy--center">
+          <div class="section-title">the list</div>
+          <p class="about-lede">
+            pictures and short clips from places I want to go, or have been — click a card to expand it and read more.
+          </p>
+        </div>
+      </div>
+
+      <div class="wrap wrap-wide about-mixes-wrap about-mixes-wrap--center">
+        <div class="about-travel-grid">
+          <div class="about-travel-card" tabindex="0" role="button">
+            <div class="about-travel-cover">
+              <img src="assets/about/machu-picchu.jpg" alt="Machu Picchu" loading="lazy">
+            </div>
+            <div class="about-travel-summary">
+              <div class="about-mix-title">Machu Picchu</div>
+              <div class="about-mix-meta">Peru</div>
+            </div>
+            <div class="about-travel-detail">
+              <p>the Incan citadel terraced into a ridge high in the Andes, wrapped in cloud forest with the peak of Huayna Picchu standing guard behind it. Want to hike the trail up and catch it as the morning fog burns off the ruins.</p>
+            </div>
+          </div>
+          <div class="about-travel-card" tabindex="0" role="button">
+            <div class="about-travel-cover">
+              <img src="assets/about/monaco.jpg" alt="Monaco" loading="lazy">
+            </div>
+            <div class="about-travel-summary">
+              <div class="about-mix-title">Monaco</div>
+              <div class="about-mix-meta">Monaco</div>
+            </div>
+            <div class="about-travel-detail">
+              <p>a lakeside town built right into the hillside — terracotta rooftops, a bell tower, cypress trees leaning over the water, mountains rising behind it. The kind of place worth slowing down in for a few days.</p>
+            </div>
+          </div>
+          <div class="about-travel-card" tabindex="0" role="button">
+            <div class="about-travel-cover">
+              <img src="assets/about/bioluminescent-lake-puerto-rico.jpg" alt="Bioluminescent lake, Puerto Rico" loading="lazy">
+            </div>
+            <div class="about-travel-summary">
+              <div class="about-mix-title">Bioluminescent Lake</div>
+              <div class="about-mix-meta">Puerto Rico</div>
+            </div>
+            <div class="about-travel-detail">
+              <p>a bay where microorganisms in the water glow electric blue every time it's disturbed — kayaking through it at night under the stars, leaving a trail of light behind the paddle.</p>
+            </div>
+          </div>
+          <div class="about-travel-card" tabindex="0" role="button">
+            <div class="about-travel-cover">
+              <img src="assets/about/guatemala-volcano.jpg" alt="Volcán de Fuego, Guatemala" loading="lazy">
+            </div>
+            <div class="about-travel-summary">
+              <div class="about-mix-title">Volcán de Fuego</div>
+              <div class="about-mix-meta">Guatemala</div>
+            </div>
+            <div class="about-travel-detail">
+              <p>an active volcano, glowing lava streaking down its slope against a night sky full of stars, city lights scattered in the valley far below. Want to camp on the neighboring ridge and watch it erupt after dark.</p>
+            </div>
+          </div>
+          <div class="about-travel-card" tabindex="0" role="button">
+            <div class="about-travel-cover">
+              <img src="assets/about/petra.jpg" alt="Petra, Jordan" loading="lazy">
+            </div>
+            <div class="about-travel-summary">
+              <div class="about-mix-title">Petra</div>
+              <div class="about-mix-meta">Jordan</div>
+            </div>
+            <div class="about-travel-detail">
+              <p>the Treasury carved directly into sandstone cliffs, framed by the narrow canyon you walk through to reach it. An ancient city hidden in the rock — want to see the facade catch the light as it opens up in front of you.</p>
+            </div>
+          </div>
+          <div class="about-travel-card" tabindex="0" role="button">
+            <div class="about-travel-cover">
+              <img src="assets/about/pyramids-of-giza.jpg" alt="Pyramids of Giza, Egypt" loading="lazy">
+            </div>
+            <div class="about-travel-summary">
+              <div class="about-mix-title">Pyramids of Giza</div>
+              <div class="about-mix-meta">Egypt</div>
+            </div>
+            <div class="about-travel-detail">
+              <p>the pyramids silhouetted at dusk, sunlight catching just the upper faces of the stone against a darkening sky. One of the oldest things you can still stand in front of.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="about-banner" style="background-image:url('assets/about/future-placeholder.jpg')">
+      <div class="about-banner-overlay"></div>
+      <div class="about-banner-copy">
+        <div class="about-eyebrow">category 04</div>
+        <h1 class="about-banner-title">FUTURE</h1>
+        <div class="about-banner-sub">what's next</div>
+        <div class="about-scroll-cue">scroll ↓</div>
+      </div>
+    </section>
+
+    <section class="about-category" data-category="future">
+      <div class="wrap wrap-wide">
+        <div class="about-intro-copy about-intro-copy--center">
+          <div class="section-title">what's ahead</div>
+          <p class="about-lede">
+            eventually, I want to start a company — not alone, but with co-founders who push my thinking and cover the gaps I can't. Getting there means putting myself out there more: going to events, striking up conversations, staying in touch with people I find interesting instead of letting connections fade after one good talk. Building a real network isn't a side project, it's the groundwork the startup will actually stand on.
+          </p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- CONTACT -->
+  <div class="page" id="page-contact">
+   <div class="page-inner"><div class="wrap">
+    <span class="eyebrow">contact</span>
+    <h1>get in touch.</h1>
+
+    <section>
+      <div class="contact-list">
+        <a class="contact-row" href="#">
+          <span class="contact-label">email</span>
+          <span class="contact-value">your@email.com</span>
+        </a>
+        <a class="contact-row" href="#">
+          <span class="contact-label">x / twitter</span>
+          <span class="contact-value">@yourhandle</span>
+        </a>
+        <a class="contact-row" href="#">
+          <span class="contact-label">github</span>
+          <span class="contact-value">github.com/yourhandle</span>
+        </a>
+      </div>
+    </section>
+   </div></div>
+  </div>
+
+</main>
+
+<div id="lightbox" class="lightbox" hidden>
+  <div class="lightbox-backdrop" id="lightbox-backdrop"></div>
+  <div class="lightbox-content">
+    <button class="lightbox-close" id="lightbox-close" aria-label="close">✕</button>
+    <div class="lightbox-media" id="lightbox-media"></div>
+    <div class="lightbox-video-controls" id="lightbox-video-controls" hidden>
+      <button class="lightbox-video-toggle" id="lightbox-video-toggle" type="button" aria-label="play or pause">▶</button>
+      <input type="range" class="lightbox-video-seek" id="lightbox-video-seek" min="0" max="100" step="0.1" value="0" aria-label="seek">
+    </div>
+    <div class="lightbox-caption">
+      <div class="lightbox-title" id="lightbox-title"></div>
+      <div class="lightbox-medium" id="lightbox-medium"></div>
+      <div class="lightbox-desc" id="lightbox-desc"></div>
+    </div>
+  </div>
+</div>
+
+<!-- DJing mix player: click a mix's vinyl → it expands, starts the mix
+     (ducking the background track via the same generic hook the
+     Cinematography reels use), the FL Studio clip slides in from the
+     side, then the vinyl shrinks and shifts left while the FL clip
+     takes over its old spot — both stay visible together. -->
+<audio id="mix-audio" preload="none"></audio>
+<div class="mix-player" id="mix-player" hidden>
+  <div class="mix-player-backdrop" id="mix-player-backdrop"></div>
+  <div class="mix-player-border" id="mix-player-border" aria-hidden="true"></div>
+  <div class="mix-player-stage" id="mix-player-stage">
+    <button class="mix-player-close" id="mix-player-close" type="button" aria-label="close mix player">✕</button>
+    <!-- js/script.js FLIP-moves the clicked card's own .mix-vinyl-icon in
+         here (and back out again on close) — this slot just provides the
+         landing size/position, it never has its own vinyl markup -->
+    <div class="mix-player-vinyl" id="mix-player-vinyl"></div>
+    <div class="mix-player-hint" id="mix-player-hint">click to play</div>
+    <div class="mix-player-flvideo" id="mix-player-flvideo">
+      <video id="mix-player-flvideo-el" muted playsinline loop></video>
+      <div class="video-scrub-controls" id="mix-flvideo-controls">
+        <button class="video-scrub-toggle" id="mix-flvideo-toggle" type="button" aria-label="play or pause">▶</button>
+        <input type="range" class="video-scrub-seek" id="mix-flvideo-seek" min="0" max="100" step="0.1" value="0" aria-label="seek">
+      </div>
+    </div>
+    <div class="mix-player-info">
+      <div class="mix-player-title" id="mix-player-title"></div>
+      <div class="mix-player-meta" id="mix-player-meta"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Travel photo viewer: click a photo → it FLIP-grows (the real <img>,
+     not a copy, so it can go back to its own grid cell exactly) into a
+     larger, left-shifted view, a description panel slides in on the
+     right, and the page background switches to a blurred wash of that
+     same photo. -->
+<div class="travel-viewer" id="travel-viewer" hidden>
+  <div class="travel-viewer-backdrop" id="travel-viewer-backdrop"></div>
+  <div class="travel-viewer-bg-blur" id="travel-viewer-bg-blur"></div>
+  <div class="travel-viewer-stage">
+    <button class="travel-viewer-close" id="travel-viewer-close" type="button" aria-label="close">✕</button>
+    <div class="travel-viewer-photo" id="travel-viewer-photo"></div>
+    <div class="travel-viewer-panel">
+      <div class="travel-viewer-title" id="travel-viewer-title"></div>
+      <div class="travel-viewer-meta" id="travel-viewer-meta"></div>
+      <p class="travel-viewer-desc" id="travel-viewer-desc"></p>
+    </div>
+  </div>
+</div>
+
+<!-- Objectify case-study viewer: click the piece's own image (not the
+     generic project lightbox) → it FLIP-grows in, then shrinks toward
+     the top while two real, interactive 3d scans (an early test and the
+     cleaned-up final) fade in below it — actual point clouds loaded
+     from .ply files via Three.js + PLYLoader, orbit-draggable via
+     OrbitControls, not renders. -->
+<div class="objectify-viewer" id="objectify-viewer" hidden>
+  <div class="objectify-viewer-backdrop" id="objectify-viewer-backdrop"></div>
+  <div class="objectify-viewer-stage">
+    <button class="objectify-viewer-close" id="objectify-viewer-close" type="button" aria-label="close">✕</button>
+    <div class="objectify-viewer-hero" id="objectify-viewer-hero"></div>
+    <div class="objectify-viewer-spheres">
+      <div class="objectify-sphere-card">
+        <div class="objectify-sphere-title">early test scan</div>
+        <div class="objectify-sphere-canvas" id="objectify-canvas-test"></div>
+        <div class="objectify-sphere-hint">drag to rotate</div>
+      </div>
+      <div class="objectify-sphere-card">
+        <div class="objectify-sphere-title">cleaned-up final</div>
+        <div class="objectify-sphere-canvas" id="objectify-canvas-final"></div>
+        <div class="objectify-sphere-hint">drag to rotate</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Reusable cover → demo video viewer, same choreography as the
+     Objectify viewer above: click a project's own cover art (any piece
+     marked data-video-piece, with data-demo-src pointing at its clip) →
+     the cover FLIP-grows in, then shrinks toward the top a beat later
+     while the demo video fades in below it and starts playing. One
+     shared overlay works for every project that has a cover + demo —
+     adding a new one later needs no JS changes, just the two data
+     attributes on that piece's <figure>. -->
+<div class="piece-viewer" id="piece-viewer" hidden>
+  <div class="piece-viewer-backdrop" id="piece-viewer-backdrop"></div>
+  <div class="piece-viewer-stage">
+    <button class="piece-viewer-close" id="piece-viewer-close" type="button" aria-label="close">✕</button>
+    <div class="piece-viewer-hero" id="piece-viewer-hero"></div>
+    <div class="piece-viewer-demo" id="piece-viewer-demo">
+      <video id="piece-viewer-video" playsinline></video>
+      <div class="video-scrub-controls" id="piece-viewer-video-controls">
+        <button class="video-scrub-toggle" id="piece-viewer-video-toggle" type="button" aria-label="play or pause">▶</button>
+        <input type="range" class="video-scrub-seek" id="piece-viewer-video-seek" min="0" max="100" step="0.1" value="0" aria-label="seek">
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <span>© 2026 moksh patel</span>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/PLYLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="js/script.js"></script>
+
+</body>
+</html>
