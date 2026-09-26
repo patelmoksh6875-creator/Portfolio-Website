@@ -857,22 +857,44 @@ const mixPlayerFlVideoBox = document.getElementById('mix-player-flvideo');
 
 /* seekable scrub bar for the FL Studio clip — same pattern as the demo
    video / lightbox scrub bars, wired once since the elements are real
-   static nodes, never cloned. */
-const syncMixFlVideoToggle = () => { mixFlVideoToggle.textContent = mixPlayerFlVideo.paused ? '▶' : '❚❚'; };
-mixPlayerFlVideo.addEventListener('play', syncMixFlVideoToggle);
-mixPlayerFlVideo.addEventListener('pause', syncMixFlVideoToggle);
+   static nodes, never cloned. #mix-audio (the actual mix the visitor
+   hears) is the timeline master here, since the video is a silent
+   screen capture of the same session with its own independent clock —
+   left alone the two drift apart within a few seconds. The scrub bar
+   reads/seeks the audio, and the video is continuously corrected back
+   onto the audio's position whenever the two drift past a small
+   threshold (small everyday clock drift is left alone so the video
+   doesn't visibly stutter-correct on every frame). */
+const MIX_AV_SYNC_THRESHOLD = 0.25; // seconds of drift tolerated before snapping the video back
+const syncMixFlVideoToggle = () => { mixFlVideoToggle.textContent = mixAudio.paused ? '▶' : '❚❚'; };
+mixAudio.addEventListener('play', syncMixFlVideoToggle);
+mixAudio.addEventListener('pause', syncMixFlVideoToggle);
 mixFlVideoToggle.addEventListener('click', () => {
-  if(mixPlayerFlVideo.paused) mixPlayerFlVideo.play().catch(() => {});
-  else mixPlayerFlVideo.pause();
+  if(mixAudio.paused){
+    mixAudio.play().catch(() => {});
+    mixPlayerFlVideo.play().catch(() => {});
+  } else {
+    mixAudio.pause();
+    mixPlayerFlVideo.pause();
+  }
 });
-mixPlayerFlVideo.addEventListener('loadedmetadata', () => {
-  if(mixPlayerFlVideo.duration) mixFlVideoSeek.max = mixPlayerFlVideo.duration;
+mixAudio.addEventListener('loadedmetadata', () => {
+  if(mixAudio.duration) mixFlVideoSeek.max = mixAudio.duration;
+});
+mixAudio.addEventListener('timeupdate', () => {
+  if(!mixAudio.duration || mixFlVideoSeek.matches(':active')) return;
+  mixFlVideoSeek.value = mixAudio.currentTime;
 });
 mixPlayerFlVideo.addEventListener('timeupdate', () => {
-  if(!mixPlayerFlVideo.duration || mixFlVideoSeek.matches(':active')) return;
-  mixFlVideoSeek.value = mixPlayerFlVideo.currentTime;
+  if(mixAudio.paused) return; // don't fight a paused/scrubbing audio track
+  if(Math.abs(mixPlayerFlVideo.currentTime - mixAudio.currentTime) > MIX_AV_SYNC_THRESHOLD){
+    mixPlayerFlVideo.currentTime = mixAudio.currentTime;
+  }
 });
-mixFlVideoSeek.addEventListener('input', () => { mixPlayerFlVideo.currentTime = mixFlVideoSeek.value; });
+mixFlVideoSeek.addEventListener('input', () => {
+  mixAudio.currentTime = mixFlVideoSeek.value;
+  mixPlayerFlVideo.currentTime = mixFlVideoSeek.value;
+});
 
 let mixFlVideoControlsIdleTimer;
 function showMixFlVideoControls(){
@@ -973,9 +995,8 @@ function startMixPlayback(){
   mixPlayerTimers.push(setTimeout(() => {
     if(flSrc){
       mixPlayerFlVideo.src = flSrc;
-      mixPlayerFlVideo.currentTime = 0;
+      mixPlayerFlVideo.currentTime = mixAudio.currentTime; // audio has a head start (it began playing 900ms ago) — catch the video up to it instead of starting both from 0
       mixPlayerFlVideo.play().catch(() => {});
-      mixFlVideoSeek.value = 0;
       showMixFlVideoControls(); // visible as soon as the clip appears, then the usual 2s idle timer takes over
     }
     mixPlayer.classList.add('flvideo-visible');
